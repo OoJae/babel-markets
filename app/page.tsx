@@ -64,9 +64,11 @@ export default function LandingPage() {
               pinned to IPFS so anyone can audit provenance.
             </p>
             <p>
-              <strong className="text-foreground">Phase 1 status. </strong>
-              The scaffold is live and the agent loop is a deterministic placeholder.
-              The real Claude Sonnet 4.6 pipeline lands in Phase 2.
+              <strong className="text-foreground">Phase 2 status. </strong>
+              The agent loop is live on mimo-v2.5-pro through an Anthropic-compatible
+              gateway. The eval gate cleared at 0.836 aggregate quality across 12
+              multilingual fixtures with 86% synthesis recall. Phase 3 wires Polymarket
+              V2 with builder code and pins reasoning traces to IPFS.
             </p>
           </div>
         </div>

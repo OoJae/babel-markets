@@ -8,6 +8,7 @@ CREATE OR REPLACE FUNCTION match_questions(
 )
 RETURNS TABLE(id uuid, question_text varchar, distance float)
 LANGUAGE sql STABLE
+SET search_path = public, extensions
 AS $$
     SELECT q.id, q.question_text, (q.embedding <=> query_embedding) AS distance
     FROM questions q

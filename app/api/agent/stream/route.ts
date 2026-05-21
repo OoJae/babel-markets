@@ -22,22 +22,49 @@ function sseEncode(event: string, payload: unknown): Uint8Array {
 }
 
 export async function POST(req: NextRequest) {
+  // Dev-only diagnostic: confirm the route is reached and inspect inbound headers.
+  // Remove once Phase 2 hotfix work is done.
+  console.log(
+    "[/api/agent/stream] POST received",
+    JSON.stringify({
+      contentType: req.headers.get("content-type"),
+      contentLength: req.headers.get("content-length"),
+      ua: req.headers.get("user-agent")?.slice(0, 60),
+    }),
+  );
+
   let body: unknown;
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    console.error("[/api/agent/stream] JSON parse failed:", e);
     return new Response(JSON.stringify({ error: "Invalid JSON" }), {
       status: 400,
     });
   }
+
+  // Surface body shape in the server console so we can see exactly what arrived
+  // when validation rejects.
+  if (typeof body === "object" && body !== null) {
+    const sample = body as Record<string, unknown>;
+    const sourceText = typeof sample.sourceText === "string" ? sample.sourceText : "";
+    console.log(
+      "[/api/agent/stream] body shape",
+      JSON.stringify({
+        keys: Object.keys(sample),
+        sourceTextLen: sourceText.length,
+        sourceTextPreview: sourceText.slice(0, 80).replace(/\s+/g, " "),
+      }),
+    );
+  }
+
   const parsed = InputSchema.safeParse(body);
   if (!parsed.success) {
-    return new Response(
-      JSON.stringify({
-        error: parsed.error.issues.map((i) => i.message).join("; "),
-      }),
-      { status: 400 },
-    );
+    const message = parsed.error.issues
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("; ");
+    console.warn("[/api/agent/stream] validation failed:", message);
+    return new Response(JSON.stringify({ error: message }), { status: 400 });
   }
 
   const supabaseUser = await createSupabaseServerClient();

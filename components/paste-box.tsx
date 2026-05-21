@@ -90,8 +90,27 @@ export function PasteBox() {
         body: JSON.stringify({ sourceText: text }),
         signal: ctrl.signal,
       });
-      if (!res.ok || !res.body) {
-        throw new Error(`Stream failed (${res.status})`);
+      if (!res.ok) {
+        // Read the server's error reason instead of swallowing it.
+        let serverReason = "";
+        try {
+          const data = (await res.clone().json()) as { error?: string };
+          if (data?.error) serverReason = data.error;
+        } catch {
+          try {
+            serverReason = (await res.text()).slice(0, 400);
+          } catch {
+            // Ignore.
+          }
+        }
+        throw new Error(
+          serverReason
+            ? `Error ${res.status}: ${serverReason}`
+            : `Stream failed (${res.status})`,
+        );
+      }
+      if (!res.body) {
+        throw new Error("Stream had no body");
       }
 
       const reader = res.body.getReader();
