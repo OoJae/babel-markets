@@ -206,10 +206,10 @@ export async function getUnifiedBalance(): Promise<{
   if (!client) return null;
   try {
     const balances = await client.getBalances();
-    const b = balances as any;
+    // The SDK shape is `{ wallet: { formatted }, gateway: { formattedTotal, ... } }`.
     return {
-      walletUsdc: String(b.usdcBalance?.formatted ?? b.wallet?.formatted ?? "0"),
-      gatewayUsdc: String(b.unifiedBalance?.formatted ?? b.gateway?.formatted ?? "0"),
+      walletUsdc: String(balances.wallet?.formatted ?? "0"),
+      gatewayUsdc: String(balances.gateway?.formattedTotal ?? "0"),
     };
   } catch (e) {
     console.warn(

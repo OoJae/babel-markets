@@ -34,9 +34,13 @@ async function main() {
   const balancesBefore = await getUnifiedBalance();
   console.log("Balances before:", balancesBefore);
 
+  // JSON.stringify chokes on BigInt; the SDK's DepositResult.amount is bigint.
+  const bigintSafe = (_key: string, value: unknown) =>
+    typeof value === "bigint" ? value.toString() : value;
+
   try {
     const receipt = await depositInitialBalance(amount);
-    console.log("Deposit receipt:", JSON.stringify(receipt, null, 2));
+    console.log("Deposit receipt:", JSON.stringify(receipt, bigintSafe, 2));
   } catch (e) {
     console.error("Deposit failed:", e instanceof Error ? e.message : e);
     console.error(
