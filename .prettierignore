@@ -1,0 +1,8 @@
+.next
+node_modules
+.arc-canteen
+supabase/.branches
+supabase/.temp
+eval/output
+*.lock
+*.log

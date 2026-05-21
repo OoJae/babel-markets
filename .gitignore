@@ -1,0 +1,44 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production builds
+/build
+
+# Local env
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+/.vscode
+/.idea
+.DS_Store
+
+# ARC-canteen synced context (read-only, gitignored to keep repo lean)
+/.arc-canteen
+
+# Eval output
+/eval/output
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+*.pem
