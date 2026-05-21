@@ -30,8 +30,14 @@ const nextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "2mb" },
   },
-  // pdf-parse is referenced by some upstream libs; keep as external to dodge bundler edge cases.
-  serverExternalPackages: ["pdf-parse", "langfuse-node", "@irys/upload"],
+  // Keep existing externals and add Xenova/ONNX for the Vercel embedding step
+  serverExternalPackages: [
+    "pdf-parse", 
+    "langfuse-node", 
+    "@irys/upload",
+    "@xenova/transformers",
+    "onnxruntime-node"
+  ],
 };
 
 module.exports = nextConfig;
