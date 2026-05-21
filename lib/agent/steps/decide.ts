@@ -1,0 +1,49 @@
+// Step 7: post-or-hold decision with a one-line rationale.
+// The rationale gets appended to the market description so traders can read
+// the agent's reasoning before they bet.
+
+import { callStructured } from "@/lib/agent/llm";
+import {
+  PostDecisionSchema,
+  type SynthesizedQuestion,
+  type QualityScore,
+} from "@/lib/agent/schema";
+
+const SYSTEM = `You decide whether a synthesized prediction question should be posted
+to Polymarket now, or held back.
+
+Post if: quality score average >= 0.70, no duplicate exists, the article describes a
+clear near-term event, and the resolution source is authoritative.
+
+Hold if: average quality < 0.70, a similar market already exists, the event is too
+far away to attract traders, or you suspect the resolution source could disappear.
+
+Write a one-sentence rationale (under 280 characters) that will become part of the
+market description. Keep it neutral; no marketing language.`;
+
+export async function decideStep(args: {
+  question: SynthesizedQuestion;
+  quality: QualityScore;
+  qualityAverage: number;
+  isDuplicate: boolean;
+  similarQuestionId?: string | null;
+}) {
+  const result = await callStructured({
+    schema: PostDecisionSchema,
+    system: SYSTEM,
+    prompt: JSON.stringify(
+      {
+        question: args.question,
+        quality: args.quality,
+        qualityAverage: Number(args.qualityAverage.toFixed(3)),
+        isDuplicate: args.isDuplicate,
+        similarQuestionId: args.similarQuestionId ?? null,
+      },
+      null,
+      2,
+    ),
+    temperature: 0.1,
+    cacheSystemPrompt: true,
+  });
+  return result;
+}

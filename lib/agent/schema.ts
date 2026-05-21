@@ -52,7 +52,7 @@ export const QuestionSchema = z.object({
   suggested_probability: z.number().min(0).max(1),
   source_lang: z.string(),
   entities: z.array(z.string()),
-  reject: z.boolean().default(false),
+  reject: z.boolean(),
   reject_reason: z.string().optional(),
 });
 export type SynthesizedQuestion = z.infer<typeof QuestionSchema>;

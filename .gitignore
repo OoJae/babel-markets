@@ -36,9 +36,16 @@ next-env.d.ts
 # Eval output
 /eval/output
 
+# Supabase CLI workspace artifacts
+/supabase/.temp
+/supabase/.branches
+
 # Logs
 *.log
 npm-debug.log*
 
 # OS
 *.pem
+
+recovery*.dat
+

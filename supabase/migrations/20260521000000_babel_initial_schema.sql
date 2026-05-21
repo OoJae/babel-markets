@@ -65,7 +65,7 @@ CREATE TRIGGER on_auth_user_created
 -- ============================================================================
 
 CREATE TABLE wallets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     wallet_address VARCHAR(255) NOT NULL,
     wallet_type VARCHAR(50) NOT NULL,
@@ -91,7 +91,7 @@ CREATE INDEX idx_wallets_address ON wallets(wallet_address);
 -- ============================================================================
 
 CREATE TABLE submissions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     source_text TEXT NOT NULL,
     source_url TEXT,
@@ -116,7 +116,7 @@ CREATE INDEX idx_submissions_status ON submissions(status);
 -- ============================================================================
 
 CREATE TABLE questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     submission_id UUID NOT NULL REFERENCES submissions(id) ON DELETE CASCADE,
     profile_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     question_text VARCHAR(500) NOT NULL,
@@ -129,7 +129,7 @@ CREATE TABLE questions (
     source_lang VARCHAR(10),
     -- Claude embeddings via voyage-3 are 1024-dim; OpenAI text-embedding-3-small is 1536.
     -- Pick 1536 to keep options open; we will pad / truncate as needed.
-    embedding vector(1536),
+    embedding extensions.vector(1536),
     polymarket_market_id VARCHAR(255),
     ipfs_cid VARCHAR(255),
     quality_score NUMERIC(4,3),
@@ -151,14 +151,14 @@ CREATE INDEX idx_questions_status ON questions(status);
 CREATE INDEX idx_questions_category ON questions(category);
 CREATE INDEX idx_questions_polymarket_market_id ON questions(polymarket_market_id);
 -- HNSW index for cosine-similarity dedup over embeddings.
-CREATE INDEX idx_questions_embedding ON questions USING hnsw (embedding vector_cosine_ops);
 
+CREATE INDEX idx_questions_embedding ON questions USING hnsw (embedding extensions.vector_cosine_ops);
 -- ============================================================================
 -- traces: per-step agent reasoning, mirrored to Langfuse and IPFS
 -- ============================================================================
 
 CREATE TABLE traces (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question_id UUID REFERENCES questions(id) ON DELETE CASCADE,
     submission_id UUID REFERENCES submissions(id) ON DELETE CASCADE,
     step VARCHAR(40) NOT NULL,
@@ -184,7 +184,7 @@ CREATE INDEX idx_traces_step ON traces(step);
 -- ============================================================================
 
 CREATE TABLE fills (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
     polymarket_market_id VARCHAR(255) NOT NULL,
     taker VARCHAR(255),
@@ -212,7 +212,7 @@ CREATE UNIQUE INDEX uq_fills_tx_hash_side ON fills(tx_hash, side);
 -- ============================================================================
 
 CREATE TABLE attributions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
     creator_profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     accrued_usdc NUMERIC(20,6) NOT NULL DEFAULT 0,
@@ -237,7 +237,7 @@ CREATE INDEX idx_attributions_creator_profile_id ON attributions(creator_profile
 -- ============================================================================
 
 CREATE TABLE payouts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     creator_profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     amount_usdc NUMERIC(20,6) NOT NULL,
     currency VARCHAR(10) NOT NULL DEFAULT 'USDC',
@@ -286,7 +286,7 @@ CREATE TRIGGER trg_attributions_touch BEFORE UPDATE ON attributions
 -- ============================================================================
 
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION uuid_generate_v4() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION gen_random_uuid() TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT SELECT ON profiles, wallets, questions, traces, fills, attributions, payouts TO authenticated;
 GRANT INSERT, UPDATE ON profiles, wallets, submissions TO authenticated;

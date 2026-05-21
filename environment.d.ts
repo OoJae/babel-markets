@@ -19,6 +19,11 @@ declare namespace NodeJS {
 
     // Agent inference
     ANTHROPIC_API_KEY: string;
+    ANTHROPIC_BASE_URL: string;
+    AGENT_MODEL: string;
+    AGENT_MODEL_INPUT_PRICE_PER_M: string;
+    AGENT_MODEL_OUTPUT_PRICE_PER_M: string;
+    AGENT_EMBED_MODEL: string;
 
     // Observability
     LANGFUSE_PUBLIC_KEY: string;

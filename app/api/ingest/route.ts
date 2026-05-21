@@ -1,15 +1,15 @@
-// Babel Markets, ingest endpoint.
-// Accepts pasted text, stores a submissions row, runs the agent pipeline, and returns
-// the synthesized question. Phase 1 ships a placeholder pipeline that always emits a
-// stub question; Phase 2 swaps in the real Claude Sonnet 4.6 loop.
-//
-// The geo-gate in middleware.ts blocks US-IP traffic that has not self-attested.
+// Synchronous ingest endpoint. Calls the agent pipeline end-to-end and returns
+// a single JSON response. Kept around for non-streaming clients (the eval harness
+// and any future API consumers). The browser hero path uses /api/agent/stream.
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { runPipeline } from "@/lib/agent/pipeline";
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 const InputSchema = z.object({
   sourceText: z.string().min(20).max(20_000),
@@ -79,6 +79,9 @@ export async function POST(req: NextRequest) {
       qualityAverage: result.qualityAverage,
       shouldPost: result.shouldPost,
       rationale: result.rationale,
+      totalCostUsdc: result.totalCostUsdc,
+      totalLatencyMs: result.totalLatencyMs,
+      steps: result.steps,
     });
   } catch (err) {
     console.error("pipeline error", err);
