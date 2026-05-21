@@ -9,7 +9,7 @@
 // draft. The threshold is intentionally generous (0.55) because Gamma question
 // wording rarely matches our synthesized phrasing word-for-word.
 
-import { embed } from "@/lib/agent/embed";
+import { embed, EmbeddingUnavailable } from "@/lib/agent/embed";
 import { searchMarkets } from "@/lib/polymarket/gamma";
 import type { GammaMarket, MarketMatch } from "@/lib/polymarket/types";
 
@@ -47,14 +47,26 @@ export async function matchQuestionToMarket(
   });
   if (candidates.length === 0) return null;
 
-  const qVec = await embed(questionText);
+  let qVec: number[];
+  try {
+    qVec = await embed(questionText);
+  } catch (e) {
+    if (e instanceof EmbeddingUnavailable) return null;
+    throw e;
+  }
 
   // Score each candidate by embedding its question text and taking cosine
   // similarity against the synthesized question's embedding. Sequential because
-  // the Xenova model is single-instance; the candidate set is small.
+  // the embedder is single-instance; the candidate set is small.
   let best: MarketMatch | null = null;
   for (const c of candidates) {
-    const cVec = await embed(c.question);
+    let cVec: number[];
+    try {
+      cVec = await embed(c.question);
+    } catch (e) {
+      if (e instanceof EmbeddingUnavailable) return null;
+      throw e;
+    }
     const sim = cosineSim(qVec, cVec);
     if (!best || sim > best.similarity) {
       best = { market: c, similarity: sim };

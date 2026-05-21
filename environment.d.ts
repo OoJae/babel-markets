@@ -25,6 +25,9 @@ declare namespace NodeJS {
     AGENT_MODEL_OUTPUT_PRICE_PER_M: string;
     AGENT_EMBED_MODEL: string;
 
+    // Embeddings
+    VOYAGE_API_KEY: string;
+
     // Observability
     LANGFUSE_PUBLIC_KEY: string;
     LANGFUSE_SECRET_KEY: string;

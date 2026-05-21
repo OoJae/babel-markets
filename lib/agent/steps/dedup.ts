@@ -6,7 +6,7 @@
 // If no neighbor is below the threshold, is_duplicate=false and the pipeline
 // continues to the decide step.
 
-import { embed } from "@/lib/agent/embed";
+import { embed, EmbeddingUnavailable } from "@/lib/agent/embed";
 import { DedupDecisionSchema } from "@/lib/agent/schema";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { z } from "zod";
@@ -18,6 +18,7 @@ export interface DedupResult {
   embedding: number[];
   latencyMs: number;
   costUsdc: number;
+  note?: string;
 }
 
 export async function dedupStep(args: {
@@ -26,7 +27,28 @@ export async function dedupStep(args: {
 }): Promise<DedupResult> {
   const start = Date.now();
   const threshold = args.threshold ?? DEFAULT_THRESHOLD;
-  const vec = await embed(args.questionText);
+
+  let vec: number[];
+  try {
+    vec = await embed(args.questionText);
+  } catch (e) {
+    if (e instanceof EmbeddingUnavailable) {
+      // Graceful degradation: skip dedup when no embedding provider is available.
+      // The pipeline continues with is_duplicate=false so synthesis is never lost.
+      return {
+        object: DedupDecisionSchema.parse({
+          is_duplicate: false,
+          similar_question_id: null,
+          similarity_score: null,
+        }),
+        embedding: [],
+        latencyMs: Date.now() - start,
+        costUsdc: 0,
+        note: "embedding provider unavailable; dedup skipped",
+      };
+    }
+    throw e;
+  }
 
   // pgvector cosine distance: 0 means identical, 2 means orthogonal opposite.
   // We use match_questions RPC if Joseph provisions it; otherwise raw SQL.
