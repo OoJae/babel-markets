@@ -15,6 +15,8 @@ import { synthesizeStep } from "@/lib/agent/steps/synthesize";
 import { critiqueStep } from "@/lib/agent/steps/critique";
 import { dedupStep } from "@/lib/agent/steps/dedup";
 import { decideStep } from "@/lib/agent/steps/decide";
+import { matchQuestionToMarket } from "@/lib/polymarket/match";
+import type { GammaMarket } from "@/lib/polymarket/types";
 import {
   averageQuality,
   type QualityScore,
@@ -48,6 +50,8 @@ export interface StepEvent {
 export interface PipelineResult {
   question: SynthesizedQuestion;
   quality: QualityScore;
+  matchedMarket?: GammaMarket;
+  matchedSimilarity?: number;
   qualityAverage: number;
   shouldPost: boolean;
   rationale: string;
@@ -303,12 +307,55 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     tokensOut: decide.usage.outputTokens,
   });
 
+  // 8. map_to_market: only when decide says "post" and there's no duplicate.
+  // Non-blocking by design; Gamma flakiness should not fail the synthesis.
+  let matchedMarket: GammaMarket | undefined;
+  let matchedSimilarity: number | undefined;
+  if (decide.object.decision === "post" && !dedup.object.is_duplicate) {
+    const mapStart = Date.now();
+    try {
+      const match = await matchQuestionToMarket(synth.object.question);
+      const output = match
+        ? {
+            matched: true,
+            market_id: match.market.id,
+            condition_id: match.market.conditionId,
+            question: match.market.question,
+            url: match.market.url,
+            similarity: match.similarity,
+          }
+        : { matched: false, similarity: 0 };
+      await record({
+        step: "map_to_market",
+        output,
+        latencyMs: Date.now() - mapStart,
+        costUsdc: 0,
+      });
+      if (match) {
+        matchedMarket = match.market;
+        matchedSimilarity = match.similarity;
+      }
+    } catch (err) {
+      await record({
+        step: "map_to_market",
+        output: {
+          matched: false,
+          error: err instanceof Error ? err.message : "unknown error",
+        },
+        latencyMs: Date.now() - mapStart,
+        costUsdc: 0,
+      });
+    }
+  }
+
   return {
     question: synth.object,
     quality: crit.object,
     qualityAverage: qualityAvg,
     shouldPost: decide.object.decision === "post" && !dedup.object.is_duplicate,
     rationale: decide.object.rationale,
+    matchedMarket,
+    matchedSimilarity,
     totalCostUsdc: totalCost,
     totalLatencyMs: Date.now() - overallStart,
     steps,

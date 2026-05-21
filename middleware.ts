@@ -6,7 +6,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const TRADING_PATHS = ["/api/post-market", "/api/ingest", "/dashboard"];
+const TRADING_PATHS = [
+  "/api/post-market",
+  "/api/ingest",
+  "/api/agent/stream",
+  "/dashboard",
+  "/market",
+];
 const US_COUNTRY_CODES = new Set(["US"]);
 
 function isTradingPath(pathname: string): boolean {

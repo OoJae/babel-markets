@@ -44,6 +44,14 @@ interface DoneEvent {
   qualityAverage: number;
   shouldPost: boolean;
   rationale: string;
+  questionId?: string | null;
+  matchedMarket?: {
+    id: string;
+    conditionId: string;
+    question: string;
+    url: string;
+  } | null;
+  matchedSimilarity?: number | null;
   totalCostUsdc: number;
   totalLatencyMs: number;
 }
@@ -58,6 +66,7 @@ const STEP_LABEL: Record<string, string> = {
   "synthesize:revise": "4b. Revise question",
   critique: "5. Self-critique",
   "critique:revise": "5b. Re-critique",
+  map_to_market: "8. Map to Polymarket",
   dedup: "6. Check duplicates",
   decide: "7. Post or hold",
 };
@@ -293,6 +302,42 @@ export function PasteBox() {
             <p className="text-sm italic text-muted-foreground">
               {done.rationale}
             </p>
+            {done.matchedMarket && (
+              <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+                <p className="font-semibold">
+                  Matched live Polymarket market
+                  {typeof done.matchedSimilarity === "number" && (
+                    <span className="ml-2 font-normal text-green-700">
+                      ({(done.matchedSimilarity * 100).toFixed(0)}% similarity)
+                    </span>
+                  )}
+                </p>
+                <p className="mt-1">{done.matchedMarket.question}</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                  <a
+                    className="underline"
+                    href={done.matchedMarket.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Trade on Polymarket
+                  </a>
+                  {done.questionId && (
+                    <a className="underline" href={`/market/${done.questionId}`}>
+                      Open market view + provenance
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+            {!done.matchedMarket && done.questionId && (
+              <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+                No live Polymarket market matched yet. Question saved as draft at{" "}
+                <a className="underline" href={`/market/${done.questionId}`}>
+                  /market/{done.questionId.slice(0, 8)}
+                </a>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

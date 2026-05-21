@@ -80,20 +80,23 @@ function computeCostUsdc(args: {
   return inputCost + cacheCost + outputCost;
 }
 
-export async function callStructured<T>(args: {
+function isNoResponseError(e: unknown): boolean {
+  if (!e) return false;
+  const msg = e instanceof Error ? e.message : String(e);
+  return /no object generated.*model did not return|did not return a response/i.test(msg);
+}
+
+async function callStructuredOnce<T>(args: {
   schema: ZodType<T>;
   system: string;
   prompt: string;
-  // When true, the system prompt is sent with anthropic cache_control marker.
   cacheSystemPrompt?: boolean;
   temperature?: number;
-}): Promise<ModelCallResult<T>> {
-  const start = Date.now();
+}) {
   const providerOptions = args.cacheSystemPrompt
     ? { anthropic: { cacheControl: { type: "ephemeral" as const } } }
     : undefined;
-
-  const result = await generateObject({
+  return generateObject({
     model: ensureModel(),
     schema: args.schema,
     system: args.system,
@@ -121,10 +124,32 @@ export async function callStructured<T>(args: {
     },
     ...(providerOptions ? { providerOptions } : {}),
   });
+}
+
+export async function callStructured<T>(args: {
+  schema: ZodType<T>;
+  system: string;
+  prompt: string;
+  cacheSystemPrompt?: boolean;
+  temperature?: number;
+}): Promise<ModelCallResult<T>> {
+  const start = Date.now();
+
+  // One automatic retry on MiMo's intermittent "no response" error. Wait
+  // 1 second between attempts so we are not slamming a flaky gateway.
+  let result;
+  try {
+    result = await callStructuredOnce(args);
+  } catch (e) {
+    if (!isNoResponseError(e)) throw e;
+    console.warn(
+      "[llm] AI_NoObjectGeneratedError on first attempt, retrying after 1s",
+    );
+    await new Promise((r) => setTimeout(r, 1000));
+    result = await callStructuredOnce(args);
+  }
 
   const latencyMs = Date.now() - start;
-  // AI SDK 6 reports cache token counts via inputTokenDetails when the provider
-  // surfaces them. We also peek at providerMetadata.anthropic for the raw fields.
   const usageRaw: any = (result as any).usage ?? {};
   const detail: any = usageRaw.inputTokenDetails ?? {};
   const meta: any = (result as any).providerMetadata?.anthropic ?? {};

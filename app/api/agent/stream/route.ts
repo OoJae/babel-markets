@@ -7,6 +7,7 @@ import { z } from "zod";
 import { runPipeline } from "@/lib/agent/pipeline";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
+import { pinReasoningTrace } from "@/lib/proof/irys";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -115,17 +116,81 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", submissionId);
 
+        // Persist the synthesized question so the market view page can render it.
+        // Wrapped in try/catch so a Supabase hiccup doesn't kill the stream.
+        let questionId: string | null = null;
+        try {
+          const { data: qrow } = await service
+            .from("questions")
+            .insert({
+              submission_id: submissionId,
+              profile_id: user?.id ?? null,
+              question_text: result.question.question.slice(0, 500),
+              resolution_rule: result.question.resolution_rule,
+              resolution_source: result.question.resolution_source,
+              expiry: result.question.expiry,
+              category: result.question.category,
+              currency: result.question.currency,
+              suggested_probability: result.question.suggested_probability,
+              source_lang: result.question.source_lang,
+              quality_score: result.qualityAverage,
+              status: result.shouldPost ? "ready" : "draft",
+              polymarket_market_id: result.matchedMarket?.id ?? null,
+            })
+            .select("id")
+            .single();
+          questionId = qrow?.id ?? null;
+        } catch (qerr) {
+          console.warn("[stream] questions insert failed:", qerr);
+        }
+
         controller.enqueue(
           sseEncode("done", {
+            questionId,
             question: result.question,
             quality: result.quality,
             qualityAverage: result.qualityAverage,
             shouldPost: result.shouldPost,
             rationale: result.rationale,
+            matchedMarket: result.matchedMarket
+              ? {
+                  id: result.matchedMarket.id,
+                  conditionId: result.matchedMarket.conditionId,
+                  question: result.matchedMarket.question,
+                  url: result.matchedMarket.url,
+                }
+              : null,
+            matchedSimilarity: result.matchedSimilarity ?? null,
             totalCostUsdc: result.totalCostUsdc,
             totalLatencyMs: result.totalLatencyMs,
           }),
         );
+
+        // Fire-and-forget IPFS pin so the stream can close before the upload
+        // finishes. The CID lands on the questions row asynchronously.
+        if (questionId) {
+          const tracePayload = {
+            babel_version: "phase-3",
+            submission_id: submissionId,
+            question_id: questionId,
+            steps: result.steps,
+            question: result.question,
+            quality: result.quality,
+            rationale: result.rationale,
+            matched_market: result.matchedMarket ?? null,
+            generated_at: new Date().toISOString(),
+          };
+          pinReasoningTrace(tracePayload)
+            .then(async (cid) => {
+              await service
+                .from("questions")
+                .update({ ipfs_cid: cid })
+                .eq("id", questionId);
+            })
+            .catch((err) => {
+              console.warn("[stream] IPFS pin failed:", err);
+            });
+        }
       } catch (err) {
         controller.enqueue(
           sseEncode("error", {

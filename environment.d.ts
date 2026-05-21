@@ -45,7 +45,11 @@ declare namespace NodeJS {
 
     // Polymarket
     POLYMARKET_API_HOST: string;
+    POLYMARKET_GAMMA_HOST: string;
     POLYMARKET_BUILDER_CODE: string;
     POLYMARKET_SIGNER_KEY: string;
+    POLYMARKET_LIVE_POSTING: string;
+    POLYMARKET_FEE_BPS: string;
+    POLYGON_CTF_EXCHANGE_ADDRESS: string;
   }
 }
