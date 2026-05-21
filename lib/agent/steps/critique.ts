@@ -3,7 +3,7 @@
 // synthesized question, then scores each axis 0 to 1. Average < 0.70 triggers
 // one revision pass.
 
-import { callStructured } from "@/lib/agent/llm";
+import { gatedCallStructured } from "@/lib/agent/gated-call";
 import { QualityScoreSchema, type SynthesizedQuestion } from "@/lib/agent/schema";
 
 const SYSTEM = `You are a strict editor scoring a Babel Markets prediction question.
@@ -36,7 +36,8 @@ export async function critiqueStep(args: {
   translatedText: string;
   question: SynthesizedQuestion;
 }) {
-  const result = await callStructured({
+  const result = await gatedCallStructured({
+    step: "critique",
     schema: QualityScoreSchema,
     system: SYSTEM,
     prompt: [

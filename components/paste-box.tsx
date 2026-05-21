@@ -19,6 +19,13 @@ interface StepEvent {
   cachedInputTokens?: number;
   tokensIn?: number;
   tokensOut?: number;
+  nanopayment?: {
+    paid: boolean;
+    amountUsdc: string;
+    network?: string;
+    txHash?: string | null;
+    note?: string;
+  };
 }
 
 interface DoneEvent {
@@ -237,6 +244,18 @@ export function PasteBox() {
                         {s.tokensIn} in / {s.tokensOut} out
                       </Badge>
                     )}
+                    {s.nanopayment?.paid && (
+                      <Badge
+                        variant="success"
+                        title={
+                          s.nanopayment.txHash
+                            ? `Settlement tx: ${s.nanopayment.txHash}`
+                            : "Signed Nanopayment, batched for settlement"
+                        }
+                      >
+                        ${Number(s.nanopayment.amountUsdc).toFixed(6)} via Gateway
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -251,7 +270,19 @@ export function PasteBox() {
           <Card className="border-l-4 border-l-muted">
             <CardContent className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm text-muted-foreground">
               <span>Steps complete: {steps.length}</span>
-              <span>Running total: ${totalCost.toFixed(6)}</span>
+              <span>
+                Model: ${totalCost.toFixed(6)} · Nanopayments: $
+                {steps
+                  .reduce(
+                    (acc, s) =>
+                      acc +
+                      (s.nanopayment?.paid
+                        ? Number(s.nanopayment.amountUsdc)
+                        : 0),
+                    0,
+                  )
+                  .toFixed(6)}
+              </span>
             </CardContent>
           </Card>
         </div>

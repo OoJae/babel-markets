@@ -46,6 +46,13 @@ declare namespace NodeJS {
     AGENT_EOA_PRIVATE_KEY: string;
     ATTRIBUTION_ESCROW_ADDRESS: string;
 
+    // Gateway Nanopayments
+    BABEL_NANOPAYMENTS_ENABLED: string;
+    NANOPAYMENT_PRICE_USDC: string;
+    NANOPAYMENT_FACILITATOR_URL: string;
+    NANOPAYMENT_SELLER_ADDRESS: string;
+    BABEL_PUBLIC_URL: string;
+
     // Polymarket
     POLYMARKET_API_HOST: string;
     POLYMARKET_GAMMA_HOST: string;

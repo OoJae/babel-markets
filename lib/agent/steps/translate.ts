@@ -1,6 +1,6 @@
 // Step 2: translate to English while preserving entities, numbers, and dates verbatim.
 
-import { callStructured } from "@/lib/agent/llm";
+import { gatedCallStructured } from "@/lib/agent/gated-call";
 import { TranslationSchema } from "@/lib/agent/schema";
 import { STEPS } from "@/lib/agent/prompts";
 
@@ -28,7 +28,8 @@ export async function translateStep(args: {
   sourceText: string;
   sourceLang: string;
 }) {
-  const result = await callStructured({
+  const result = await gatedCallStructured({
+    step: "translate",
     schema: TranslationSchema,
     system: SYSTEM,
     prompt: `Source language: ${args.sourceLang}\n\nArticle:\n${args.sourceText}`,

@@ -2,7 +2,7 @@
 // Reject path short-circuits the rest of the pipeline so we do not burn tokens on
 // synthesis for an article that cannot be tradable in the first place.
 
-import { callStructured } from "@/lib/agent/llm";
+import { gatedCallStructured } from "@/lib/agent/gated-call";
 import { TradabilitySchema } from "@/lib/agent/schema";
 import { STEPS } from "@/lib/agent/prompts";
 
@@ -26,7 +26,8 @@ export async function assessStep(args: {
   translatedText: string;
   sourceLang: string;
 }) {
-  const result = await callStructured({
+  const result = await gatedCallStructured({
+    step: "assess",
     schema: TradabilitySchema,
     system: SYSTEM,
     prompt: `Source language: ${args.sourceLang}\n\nEnglish translation:\n${args.translatedText}`,

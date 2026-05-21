@@ -45,6 +45,15 @@ export interface StepEvent {
   cachedInputTokens?: number;
   tokensIn?: number;
   tokensOut?: number;
+  // Nanopayment receipt for this step when Nanopayments are enabled.
+  // When disabled or unavailable, omitted.
+  nanopayment?: {
+    paid: boolean;
+    amountUsdc: string;
+    network?: string;
+    txHash?: string | null;
+    note?: string;
+  };
 }
 
 export interface PipelineResult {
@@ -89,6 +98,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     tokensOut?: number;
     input?: unknown;
     score?: number | null;
+    nanopayment?: StepEvent["nanopayment"];
   }) {
     const event: StepEvent = {
       step: args.step,
@@ -98,6 +108,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
       cachedInputTokens: args.cachedInputTokens,
       tokensIn: args.tokensIn,
       tokensOut: args.tokensOut,
+      nanopayment: args.nanopayment,
     };
     steps.push(event);
     totalCost += args.costUsdc;
@@ -139,6 +150,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     cachedInputTokens: detect.usage.cachedInputTokens,
     tokensIn: detect.usage.inputTokens,
     tokensOut: detect.usage.outputTokens,
+    nanopayment: detect.nanopayment,
     input: { sourceTextPreview: opts.sourceText.slice(0, 240) },
   });
 
@@ -155,6 +167,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     cachedInputTokens: translate.usage.cachedInputTokens,
     tokensIn: translate.usage.inputTokens,
     tokensOut: translate.usage.outputTokens,
+    nanopayment: translate.nanopayment,
     input: { sourceLang: detect.object.source_lang },
   });
 
@@ -171,6 +184,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     cachedInputTokens: assess.usage.cachedInputTokens,
     tokensIn: assess.usage.inputTokens,
     tokensOut: assess.usage.outputTokens,
+    nanopayment: assess.nanopayment,
   });
 
   if (!assess.object.is_tradable) {
@@ -222,6 +236,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     cachedInputTokens: synth.usage.cachedInputTokens,
     tokensIn: synth.usage.inputTokens,
     tokensOut: synth.usage.outputTokens,
+    nanopayment: synth.nanopayment,
   });
 
   // 5. critique
@@ -239,6 +254,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     cachedInputTokens: crit.usage.cachedInputTokens,
     tokensIn: crit.usage.inputTokens,
     tokensOut: crit.usage.outputTokens,
+    nanopayment: crit.nanopayment,
     score: qualityAvg,
   });
 
@@ -261,6 +277,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
       cachedInputTokens: synth.usage.cachedInputTokens,
       tokensIn: synth.usage.inputTokens,
       tokensOut: synth.usage.outputTokens,
+      nanopayment: synth.nanopayment,
     });
     crit = await critiqueStep({
       sourceText: opts.sourceText,
@@ -276,6 +293,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
       cachedInputTokens: crit.usage.cachedInputTokens,
       tokensIn: crit.usage.inputTokens,
       tokensOut: crit.usage.outputTokens,
+      nanopayment: crit.nanopayment,
       score: qualityAvg,
     });
   }
@@ -305,6 +323,7 @@ export async function runPipeline(opts: RunOptions): Promise<PipelineResult> {
     cachedInputTokens: decide.usage.cachedInputTokens,
     tokensIn: decide.usage.inputTokens,
     tokensOut: decide.usage.outputTokens,
+    nanopayment: decide.nanopayment,
   });
 
   // 8. map_to_market: only when decide says "post" and there's no duplicate.

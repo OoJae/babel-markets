@@ -2,7 +2,7 @@
 // franc gives a cheap heuristic ISO-639-3 code; the LLM final answer wins.
 
 import { franc } from "franc";
-import { callStructured } from "@/lib/agent/llm";
+import { gatedCallStructured } from "@/lib/agent/gated-call";
 import { LanguageDetectionSchema } from "@/lib/agent/schema";
 import { STEPS } from "@/lib/agent/prompts";
 
@@ -15,7 +15,8 @@ and punctuation. Set confidence in [0,1].`;
 
 export async function detectStep(sourceText: string) {
   const francGuess = franc(sourceText) || "und";
-  const result = await callStructured({
+  const result = await gatedCallStructured({
+    step: "detect",
     schema: LanguageDetectionSchema,
     system: SYSTEM,
     prompt: `franc guessed: "${francGuess}". Source article:\n\n${sourceText}`,

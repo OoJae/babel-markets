@@ -2,7 +2,7 @@
 // This is the highest-stakes step. The question must be resolvable, sourced,
 // timely, faithful, and currency-correct.
 
-import { callStructured } from "@/lib/agent/llm";
+import { gatedCallStructured } from "@/lib/agent/gated-call";
 import { QuestionSchema } from "@/lib/agent/schema";
 import { STEPS, SYSTEM_PROMPT } from "@/lib/agent/prompts";
 
@@ -66,7 +66,8 @@ export async function synthesizeStep(args: {
     );
   }
 
-  const result = await callStructured({
+  const result = await gatedCallStructured({
+    step: args.revisionFeedback ? "synthesize:revise" : "synthesize",
     schema: QuestionSchema,
     system: SYSTEM,
     prompt: promptParts.join("\n"),

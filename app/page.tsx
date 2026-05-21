@@ -64,11 +64,13 @@ export default function LandingPage() {
               pinned to IPFS so anyone can audit provenance.
             </p>
             <p>
-              <strong className="text-foreground">Phase 2 status. </strong>
-              The agent loop is live on mimo-v2.5-pro through an Anthropic-compatible
-              gateway. The eval gate cleared at 0.836 aggregate quality across 12
-              multilingual fixtures with 86% synthesis recall. Phase 3 wires Polymarket
-              V2 with builder code and pins reasoning traces to IPFS.
+              <strong className="text-foreground">Live status. </strong>
+              The agent loop runs on mimo-v2.5-pro through an Anthropic-compatible
+              gateway and Voyage AI for embeddings. Each step is gated behind a
+              Circle Gateway Nanopayment paid by the agent EOA on Arc testnet, so
+              the per-step USDC receipts on this page are real testnet settlements.
+              Synthesized questions are matched to live Polymarket markets, and the
+              full reasoning trace is pinned to IPFS for provenance.
             </p>
           </div>
         </div>
