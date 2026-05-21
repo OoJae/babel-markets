@@ -75,11 +75,19 @@ Babel uses the Canteen "unbundling the prediction market stack" essay as its des
 
 ## Getting started
 
-Open `SETUP.md` and follow it top to bottom. Roughly: provision Supabase, Upstash, Langfuse, Anthropic, Irys, Circle Console; fill `.env.local`; run `npm install`; push the Supabase migration; `npm run dev`. Estimated 30 minutes for a fresh clone.
+Copy `.env.example` to `.env.local`, fill in the keys (Supabase, Upstash, Langfuse, Anthropic-compatible gateway, Irys, Circle Console, Polygon RPC), then:
+
+```
+npm install
+supabase db push
+npm run dev
+```
+
+Open `localhost:3000`, paste a non-English article, and watch the 7 agent steps stream live with per-step USDC cost. Run `npm run eval` to score 12 multilingual fixtures and write Langfuse traces.
 
 ## Compliance
 
-Babel is testnet only for the hackathon period. Polymarket prohibits trading by US persons; we geo-gate at the edge and require self-attestation at sign-up. USYC is non-US-only and KYC-allow-listed; Babel demonstrates the integration on testnet as a structural design and does not park real user funds. See [`SETUP.md`](./SETUP.md) for details.
+Babel is testnet-only for the hackathon period. Polymarket prohibits trading by US persons; we geo-gate at the edge and require self-attestation at sign-up. USYC is non-US-only and KYC-allow-listed; Babel demonstrates the integration on testnet as a structural design and does not park real user funds.
 
 ## License
 

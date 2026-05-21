@@ -49,3 +49,10 @@ npm-debug.log*
 
 recovery*.dat
 
+# Internal working docs (kept locally, not pushed to the public repo)
+/Babel_Markets_Build_Guide_and_Playbook.md
+/PHASE1-STATUS.md
+/PHASE2-STATUS.md
+/PROMPT-HISTORY.md
+/SETUP.md
+
