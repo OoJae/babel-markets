@@ -125,17 +125,26 @@ export async function payAndCall<T = unknown>(
     });
     const r = result as unknown as {
       data?: T;
-      amount?: string;
+      amount?: bigint | string;
+      formattedAmount?: string;
       network?: string;
       transaction?: string;
       paymentResponse?: string;
     };
+    // The SDK returns `amount: bigint` and `formattedAmount: string`. We must
+    // coerce to string before this object touches JSON.stringify (SSE encoder,
+    // Supabase insert, Langfuse span input).
+    const amountUsdc =
+      r.formattedAmount ??
+      (typeof r.amount === "bigint"
+        ? r.amount.toString()
+        : String(r.amount ?? price));
     return {
       ok: true,
       data: r.data,
       receipt: {
         paid: true,
-        amountUsdc: r.amount ?? price,
+        amountUsdc,
         network: r.network ?? "arcTestnet",
         txHash: r.transaction ?? null,
         paymentResponseHeader: r.paymentResponse ?? null,

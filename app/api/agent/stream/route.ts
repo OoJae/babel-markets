@@ -18,7 +18,12 @@ const InputSchema = z.object({
 });
 
 function sseEncode(event: string, payload: unknown): Uint8Array {
-  const data = JSON.stringify(payload);
+  // BigInt-aware replacer: any SDK field that returns a BigInt (e.g. Circle's
+  // PayResult.amount) is coerced to its decimal string. Defense in depth so a
+  // future SDK leak does not crash the stream.
+  const data = JSON.stringify(payload, (_k, v) =>
+    typeof v === "bigint" ? v.toString() : v,
+  );
   return new TextEncoder().encode(`event: ${event}\ndata: ${data}\n\n`);
 }
 
