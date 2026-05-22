@@ -8,6 +8,8 @@ import { runPipeline } from "@/lib/agent/pipeline";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { pinReasoningTrace } from "@/lib/proof/irys";
+import { isEscrowDeployed, registerQuestion } from "@/lib/chain/escrow";
+import type { Address } from "viem";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -170,6 +172,36 @@ export async function POST(req: NextRequest) {
             totalLatencyMs: result.totalLatencyMs,
           }),
         );
+
+        // Register the question on AttributionEscrow so future fill credits can
+        // accrue onchain. Fire-and-forget; the contract is the source of truth
+        // for payouts, but the demo still works if this fails (questions row
+        // already exists, the dashboard reads accrued from the contract).
+        if (questionId && user?.id && isEscrowDeployed() && result.shouldPost) {
+          (async () => {
+            try {
+              const { data: wallet } = await service
+                .from("wallets")
+                .select("wallet_address")
+                .eq("profile_id", user.id)
+                .eq("blockchain", "ARC")
+                .limit(1)
+                .maybeSingle();
+              const addr = (wallet as { wallet_address?: string } | null)?.wallet_address;
+              if (!addr) return;
+              const tx = await registerQuestion({
+                questionId,
+                creatorAddress: addr as Address,
+              });
+              console.log(`[stream] registerQuestion tx=${tx}`);
+            } catch (e) {
+              console.warn(
+                "[stream] registerQuestion failed:",
+                e instanceof Error ? e.message : e,
+              );
+            }
+          })();
+        }
 
         // Fire-and-forget IPFS pin so the stream can close before the upload
         // finishes. The CID lands on the questions row asynchronously.

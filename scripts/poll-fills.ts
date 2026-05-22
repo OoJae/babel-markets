@@ -17,6 +17,7 @@ config({ path: ".env", override: false });
 import { getPolygonPublicClient } from "@/lib/chain/polygon";
 import { getRedis } from "@/lib/db/redis";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
+import { creditFees, isEscrowDeployed } from "@/lib/chain/escrow";
 
 const CTF_EXCHANGE = (process.env.POLYGON_CTF_EXCHANGE_ADDRESS ||
   "0xE111180000d2663C0091e4f400237545B87B996B") as `0x${string}`;
@@ -118,20 +119,68 @@ async function main() {
       // Polymarket fee formula, which we'll confirm before live-posting.
       const sizeUsdc = Number(args.makerAmountFilled ?? 0n) / 1_000_000;
       const builderFee = (sizeUsdc * FEE_BPS) / 10_000;
+      const polymarketMarketId = String(args.makerAssetId ?? "");
+
+      // Look up the babel question for this market so we can credit the right
+      // creator on AttributionEscrow.
+      const { data: q } = await supabase
+        .from("questions")
+        .select("id, profile_id")
+        .eq("polymarket_market_id", polymarketMarketId)
+        .limit(1)
+        .maybeSingle();
+      const questionId = (q as { id?: string } | null)?.id ?? null;
+      const profileId = (q as { profile_id?: string } | null)?.profile_id ?? null;
+
       const { error } = await supabase.from("fills").upsert(
         {
-          polymarket_market_id: String(args.makerAssetId ?? ""),
+          polymarket_market_id: polymarketMarketId,
           taker: String(args.taker ?? ""),
           side: "BUY",
           size_usdc: sizeUsdc,
           builder_fee_usdc: builderFee,
           tx_hash: log.transactionHash ?? "",
           observed_at: new Date().toISOString(),
-          question_id: null as never,
+          question_id: questionId as never,
         } as never,
         { onConflict: "tx_hash,side" } as never,
       );
       if (!error) written += 1;
+
+      // Best-effort onchain credit. Only when the escrow contract is deployed
+      // AND we resolved a question id; otherwise the fill stays as a Supabase
+      // row only and the cron will retry on the next pass.
+      if (questionId && profileId && isEscrowDeployed() && builderFee > 0) {
+        try {
+          const { data: wallet } = await supabase
+            .from("wallets")
+            .select("wallet_address")
+            .eq("profile_id", profileId)
+            .eq("blockchain", "ARC")
+            .limit(1)
+            .maybeSingle();
+          const arcAddress = (wallet as { wallet_address?: string } | null)?.wallet_address;
+          if (arcAddress) {
+            const tx = await creditFees({
+              questionId,
+              amountUsdc: builderFee.toFixed(6),
+              creatorAddress: arcAddress as `0x${string}`,
+            });
+            await supabase.from("escrow_credits").insert({
+              question_id: questionId,
+              creator_profile_id: profileId,
+              amount_usdc: builderFee,
+              arc_tx: tx,
+            });
+            console.log(`[poll-fills] credited ${builderFee} USDC, tx=${tx}`);
+          }
+        } catch (e) {
+          console.warn(
+            "[poll-fills] creditFees failed:",
+            e instanceof Error ? e.message : e,
+          );
+        }
+      }
     }
   }
 

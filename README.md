@@ -26,27 +26,19 @@ Babel takes the prediction-market stack that Canteen has been unbundling, layers
 
 This mirrors the layered prediction-market stack the Canteen essay describes: ingestion as the cold input, an agent as the operator-mediated synthesis venue, and a market layer with builder codes as the identity primitive that ties creators to revenue. Babel is one solo-developer reading of how a non-English-first operator gets built on top of that stack.
 
-## Phase 1 status
+## Status
 
-What ships in Phase 1 (this commit):
+Phases 1 through 5 have shipped:
 
-- Repo scaffold (Next.js 15+ App Router, TypeScript, Tailwind 4, Supabase, viem)
-- Supabase schema with the 7 Babel tables and `pgvector` for question dedup
-- Lifted Modular Wallets passkey enrollment from `circlefin/arc-p2p-payments`
-- Agent pipeline scaffold with Zod-structured output, prompts, and 5-axis rubric
-- Eval harness against 12 multilingual fixtures (Joseph to expand to 30+)
-- Stub modules for Polymarket V2, Gateway Nanopayments, CCTP, USYC, EURC, AttributionEscrow
-- US-persons geo-gate middleware and compliance banner
-- IPFS pinning via Irys (server-side)
-- Health endpoint at `/api/health`
+- **Phase 1**: Repo scaffold, Supabase schema with `pgvector`, Modular Wallets passkey enrollment lifted from `arc-p2p-payments`, geo-gate middleware, Irys IPFS pinning.
+- **Phase 2**: Real multi-step agent loop on mimo-v2.5-pro through an Anthropic-compatible gateway, Voyage AI embeddings, 5-axis self-critique rubric, eval harness against multilingual fixtures.
+- **Phase 3**: Polymarket V2 CLOB v2 client with builder code attached to signed EIP-712 orders, Gamma metadata matcher, IPFS provenance per question.
+- **Phase 4**: Gateway Nanopayments wired through the seller relay at `/api/babel-nanopay`. Each agent step settles a real testnet Nanopayment on Arc; the paste box shows per-step USDC receipts with the settlement tx hash.
+- **Phase 5**: Live CCTP v2 sweep Polygon Amoy to Arc testnet, AttributionEscrow contract deployable to Arc, USYC float as a documented testnet stub, EURC routing wired through the question schema, market view, and post-market preview.
 
-What lands later:
+What lands next:
 
-- **Phase 2**: real Claude Sonnet 4.6 agent loop with prompt caching, replace `runPipeline` stub
-- **Phase 3**: Polymarket V2 CLOB client with builder code, fills poller, IPFS provenance per market
-- **Phase 4**: Gateway Nanopayments wired to inference endpoint; on-screen sub-cent fee readout
-- **Phase 5**: CCTP sweep Polygon to Arc, AttributionEscrow deploy on Arc, USYC float (testnet stub), EURC routing
-- **Phase 6**: market view page with provenance link, dashboard with weekly payout history, video demo polish
+- **Phase 6**: market view design polish, creator dashboard payout history, Modular Wallet `claim()` wired to AttributionEscrow, video demo polish.
 
 ## Architecture vocabulary
 

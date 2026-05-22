@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SweepPanel } from "@/components/sweep-panel";
+import { UsycPanel } from "@/components/usyc-panel";
+import { getUserUsycFloat } from "@/lib/circle/usyc";
+import { readAccruedBalance, isEscrowDeployed } from "@/lib/chain/escrow";
+import type { Address } from "viem";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -16,13 +21,22 @@ export default async function DashboardPage() {
 
   const { data: attributions } = await supabase
     .from("attributions")
-    .select("question_id, accrued_usdc, paid_usdc, last_payout_at")
+    .select("question_id, accrued_usdc, paid_usdc, currency, last_payout_at")
     .eq("creator_profile_id", user.id);
 
   const totalAccrued = (attributions ?? []).reduce(
     (s, a) => s + Number(a.accrued_usdc ?? 0),
     0,
   );
+
+  const arcWallet = (wallets ?? []).find((w) => w.blockchain === "ARC")?.wallet_address as
+    | Address
+    | undefined;
+
+  const onchainAccrued =
+    isEscrowDeployed() && arcWallet ? await readAccruedBalance(arcWallet) : null;
+
+  const usycFloat = await getUserUsycFloat(user.id);
 
   return (
     <main className="min-h-screen px-4 py-10">
@@ -33,11 +47,16 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base text-muted-foreground">
-                Accrued USDC
+                Builder fees
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-bold">
-              ${totalAccrued.toFixed(4)}
+            <CardContent>
+              <SweepPanel accrued={totalAccrued} />
+              {onchainAccrued !== null && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Onchain accrued on Arc: ${Number(onchainAccrued).toFixed(4)}
+                </p>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -56,8 +75,8 @@ export default async function DashboardPage() {
                 Float in USYC
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-bold text-muted-foreground">
-              testnet stub
+            <CardContent>
+              <UsycPanel initial={usycFloat} />
             </CardContent>
           </Card>
         </div>

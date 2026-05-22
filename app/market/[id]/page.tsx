@@ -7,6 +7,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import { getMarket } from "@/lib/polymarket/gamma";
+import { displayLabelFor, explorerTokenUrl } from "@/lib/circle/fx";
+import { type Currency } from "@/lib/agent/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,7 +90,16 @@ export default async function MarketPage({ params }: PageProps) {
             <Badge variant={q.status === "ready" ? "success" : "warning"}>
               {q.status}
             </Badge>
-            <Badge variant="outline">{q.currency}</Badge>
+            <a
+              href={explorerTokenUrl((q.currency as Currency) ?? "USDC")}
+              target="_blank"
+              rel="noreferrer"
+              title={`${displayLabelFor((q.currency as Currency) ?? "USDC")} on Arc testnet`}
+            >
+              <Badge variant="outline">
+                Pays in {displayLabelFor((q.currency as Currency) ?? "USDC")}
+              </Badge>
+            </a>
             <Badge variant="outline">{q.category}</Badge>
             {q.source_lang && <Badge variant="outline">{q.source_lang}</Badge>}
             {q.quality_score !== null && (

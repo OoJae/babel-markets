@@ -12,6 +12,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import { postOrder, getBuilderCode, isLiveMode } from "@/lib/polymarket/client";
 import { getMarket } from "@/lib/polymarket/gamma";
+import { tokenAddressFor, displayLabelFor } from "@/lib/circle/fx";
+import { type Currency } from "@/lib/agent/schema";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
   const service = getSupabaseServiceClient();
   const { data: question, error } = await service
     .from("questions")
-    .select("id,polymarket_market_id")
+    .select("id,polymarket_market_id,currency")
     .eq("id", parsed.data.questionId)
     .single();
   if (error || !question) {
@@ -84,6 +86,7 @@ export async function POST(req: NextRequest) {
       size: parsed.data.size,
       side: parsed.data.side,
     });
+    const currency = ((question as { currency?: string }).currency ?? "USDC") as Currency;
     return NextResponse.json({
       ok: true,
       submitted: result.submitted,
@@ -91,6 +94,13 @@ export async function POST(req: NextRequest) {
       liveMode: isLiveMode(),
       preview: result.preview ?? null,
       receipt: result.receipt ?? null,
+      // Babel-side settlement preview. Polymarket V2 itself settles in USDC; we
+      // surface what Babel would route to if a market is EUR-denominated so the
+      // demo shows the FX-aware routing wired end to end.
+      settlement: {
+        currency: displayLabelFor(currency),
+        token: tokenAddressFor(currency),
+      },
     });
   } catch (err) {
     return NextResponse.json(
