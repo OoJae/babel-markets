@@ -4,11 +4,13 @@
 // renders each CCTP v2 step as it arrives. In mock mode (BABEL_CCTP_ENABLED=0)
 // the route returns fake tx hashes so the UI flow demos cleanly without
 // burning testnet USDC.
+//
+// Brand markup, no shadcn primitives. The streaming SSE logic is unchanged
+// from Phase 6; only the JSX moved into .dash / .sweep-event / .brand-pill
+// selectors defined in app/brand.css.
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 const MIN_SWEEP_USDC = 0.1;
 
@@ -50,6 +52,13 @@ const STAGE_LABEL: Record<SweepEvent["stage"], string> = {
   "burn-confirmed": "Burn confirmed",
   "attestation-fetched": "Iris attestation received",
   "mint-confirmed": "Minted on Arc testnet",
+};
+
+const STAGE_NOTE: Record<SweepEvent["stage"], string> = {
+  "burn-pending": "depositForBurn on TokenMessengerV2",
+  "burn-confirmed": "Polygon Amoy block included",
+  "attestation-fetched": "Iris v2 signed the message",
+  "mint-confirmed": "receiveMessage on MessageTransmitterV2",
 };
 
 export function SweepPanel({ accrued }: { accrued: number }) {
@@ -130,85 +139,127 @@ export function SweepPanel({ accrued }: { accrued: number }) {
     }
   }
 
+  const isMockMode = init?.mock || (!init && !running);
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
         <div>
-          <div className="text-3xl font-bold">${accrued.toFixed(4)}</div>
-          <div className="text-xs text-muted-foreground">Accrued USDC ready to sweep</div>
+          <div className="dash-stat">${accrued.toFixed(4)}</div>
+          <div className="dash-stat-sub">Accrued USDC ready to sweep</div>
         </div>
-        {init?.mock || (!init && !running) ? (
-          <Badge variant="outline">demo mode</Badge>
-        ) : null}
+        {isMockMode && <span className="brand-chip">demo mode</span>}
       </div>
-      <div className="flex items-center gap-2">
+
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, flexWrap: "wrap" }}
+      >
         <input
           type="text"
           inputMode="decimal"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           disabled={running}
-          className="w-28 rounded border bg-background px-2 py-1 text-sm font-mono"
+          className="brand-input"
         />
-        <Button
+        <button
+          type="button"
+          className="brand-pill"
           onClick={startSweep}
           disabled={running || Number(amount) < MIN_SWEEP_USDC}
-          size="sm"
           title={
             Number(amount) < MIN_SWEEP_USDC
               ? `CCTP v2 minimum sweep is ${MIN_SWEEP_USDC} USDC`
               : undefined
           }
         >
-          {running ? "Sweeping..." : "Sweep to Arc"}
-        </Button>
+          {running ? "Sweeping..." : "Sweep to Arc"} <span>→</span>
+        </button>
       </div>
       {!running && Number(amount) < MIN_SWEEP_USDC && (
-        <p className="text-xs text-muted-foreground">
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            opacity: 0.55,
+            marginTop: 8,
+          }}
+        >
           CCTP v2 minimum sweep is {MIN_SWEEP_USDC} USDC.
         </p>
       )}
       {error && (
-        <p className="text-sm text-destructive">{error}</p>
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 12,
+            color: "var(--pompeii)",
+            marginTop: 10,
+          }}
+        >
+          {error}
+        </p>
       )}
+
       {(events.length > 0 || done) && (
-        <ol className="space-y-1 text-sm">
+        <ol className="sweep-events">
           {events.map((ev, idx) => (
-            <li key={`${ev.stage}-${idx}`} className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs text-muted-foreground">{idx + 1}</span>
-              <span>{STAGE_LABEL[ev.stage]}</span>
-              {ev.burnTxHash && ev.stage === "burn-confirmed" && (
-                <a
-                  className="text-xs underline"
-                  href={polygonscan(ev.burnTxHash)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {ev.burnTxHash.slice(0, 10)}...
-                </a>
-              )}
-              {ev.mintTxHash && ev.stage === "mint-confirmed" && (
-                <a
-                  className="text-xs underline"
-                  href={arcscan(ev.mintTxHash)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {ev.mintTxHash.slice(0, 10)}...
-                </a>
-              )}
-              {ev.attestationStatus && ev.stage === "attestation-fetched" && (
-                <Badge variant="outline">{ev.attestationStatus}</Badge>
-              )}
-              {ev.note && (
-                <span className="text-xs text-muted-foreground">{ev.note}</span>
-              )}
+            <li key={`${ev.stage}-${idx}`} className="sweep-event">
+              <span className="n">0{idx + 1}</span>
+              <span className="lbl">
+                <b>{STAGE_LABEL[ev.stage]}</b>
+                <span>{STAGE_NOTE[ev.stage]}</span>
+              </span>
+              <span>
+                {ev.burnTxHash && ev.stage === "burn-confirmed" && (
+                  <a
+                    className="lnk"
+                    href={polygonscan(ev.burnTxHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {ev.burnTxHash.slice(0, 10)}...
+                  </a>
+                )}
+                {ev.mintTxHash && ev.stage === "mint-confirmed" && (
+                  <a
+                    className="lnk"
+                    href={arcscan(ev.mintTxHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {ev.mintTxHash.slice(0, 10)}...
+                  </a>
+                )}
+                {ev.attestationStatus && ev.stage === "attestation-fetched" && (
+                  <span className="brand-chip dark">{ev.attestationStatus}</span>
+                )}
+              </span>
             </li>
           ))}
         </ol>
       )}
       {done?.result && (
-        <p className="text-xs text-muted-foreground">
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            opacity: 0.55,
+            marginTop: 12,
+          }}
+        >
           Swept {done.result.amountUsdc} USDC{done.mock ? " (mock)" : ""}.
         </p>
       )}

@@ -14,7 +14,14 @@ const CITIES = [
   { tz: "Europe/London", abbr: "EU" },
 ];
 
-export function Nav() {
+interface NavProps {
+  // Prefix prepended to every nav-center anchor. Empty on the landing (anchors
+  // are in-page #ids). Set to "/" when used on /app so the anchors jump back
+  // to the landing section instead of nowhere.
+  linkBase?: string;
+}
+
+export function Nav({ linkBase = "" }: NavProps = {}) {
   const { theme } = useScrollSection();
   useSmoothAnchors();
   const [clock, setClock] = useState<string>("--:-- . LAGOS");
@@ -59,14 +66,17 @@ export function Nav() {
         </span>
       </div>
       <div className="nav-center">
-        <a href="#agora">Agora</a>
-        <a href="#agent">Agent</a>
-        <a href="#tower">Tower</a>
-        <a href="#stack">Stack</a>
-        <a href="#earnings">Earnings</a>
+        <a href={`${linkBase}#agora`}>Agora</a>
+        <a href={`${linkBase}#agent`}>Agent</a>
+        <a href={`${linkBase}#tower`}>Tower</a>
+        <a href={`${linkBase}#stack`}>Stack</a>
+        <a href={`${linkBase}#earnings`}>Earnings</a>
       </div>
       <div className="nav-right">
-        <a href="#cta" className="nav-cta">
+        <a href="/dashboard" className="nav-cta nav-cta-secondary">
+          Dashboard ↗
+        </a>
+        <a href="/app" className="nav-cta">
           Open Babel ↗
         </a>
       </div>

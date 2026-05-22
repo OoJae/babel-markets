@@ -4,9 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -41,60 +38,76 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create your Babel account</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={submit} className="space-y-4">
-            <Input
+    <main className="auth-page">
+      <header className="auth-head">
+        <Link href="/" className="mark">
+          babel/markets
+        </Link>
+        <Link href="/sign-in">Have an account? Sign in ↗</Link>
+      </header>
+      <section className="auth-main">
+        <form className="auth-card" onSubmit={submit}>
+          <h1>
+            Create your <em>Babel account.</em>
+          </h1>
+          <p className="auth-tagline">A passkey wallet awaits on the next page.</p>
+          {error && <p className="auth-error">{error}</p>}
+          <div className="auth-field">
+            <label htmlFor="signup-name">Name</label>
+            <input
+              id="signup-name"
+              className="auth-input"
               type="text"
-              placeholder="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              autoComplete="name"
             />
-            <Input
+          </div>
+          <div className="auth-field">
+            <label htmlFor="signup-email">Email</label>
+            <input
+              id="signup-email"
+              className="auth-input"
               type="email"
-              placeholder="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
             />
-            <Input
+          </div>
+          <div className="auth-field">
+            <label htmlFor="signup-password">Password (8+ characters)</label>
+            <input
+              id="signup-password"
+              className="auth-input"
               type="password"
-              placeholder="password (8+ characters)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               minLength={8}
               required
+              autoComplete="new-password"
             />
-            <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={ackNotUs}
-                onChange={(e) => setAckNotUs(e.target.checked)}
-                className="mt-1"
-              />
-              <span>
-                I confirm I am not a US person and I understand that Babel posts to
-                Polymarket on testnet. I have read the compliance notice.
-              </span>
-            </label>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={busy} className="w-full">
-              {busy ? "Creating..." : "Create account"}
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Have an account?{" "}
-              <Link href="/sign-in" className="underline">
-                Sign in
-              </Link>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <label className="auth-checkbox">
+            <input
+              type="checkbox"
+              checked={ackNotUs}
+              onChange={(e) => setAckNotUs(e.target.checked)}
+            />
+            <span>
+              I confirm I am not a US person and I understand that Babel posts to
+              Polymarket on testnet. I have read the compliance notice.
+            </span>
+          </label>
+          <button type="submit" className="auth-submit" disabled={busy}>
+            {busy ? "Creating..." : "Create account"}
+          </button>
+          <p className="auth-foot">
+            Have an account? <Link href="/sign-in">Sign in</Link>
+          </p>
+        </form>
+      </section>
     </main>
   );
 }

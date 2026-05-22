@@ -21,8 +21,6 @@ import {
   toPasskeyTransport,
   toWebAuthnCredential,
 } from "@circle-fin/modular-wallets-core";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { arcTestnet } from "@/lib/chain/arc";
 
 interface Props {
@@ -89,28 +87,34 @@ export function PasskeySetup({ username }: Props) {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Set up your wallet</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Babel uses a Circle Modular Smart Account secured by a passkey. Authenticate
-          with Face ID or your fingerprint. No seed phrase. The wallet lives on Arc
-          testnet and signs trades with your builder code attached.
-        </p>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button onClick={enroll} disabled={creating} className="w-full">
+    <div className="auth-card passkey-card">
+      <h1>
+        Set up <em>your wallet.</em>
+      </h1>
+      <p className="copy">
+        Babel uses a Circle Modular Smart Account secured by a passkey. Authenticate
+        with Face ID or your fingerprint. No seed phrase. The wallet lives on Arc
+        testnet and signs trades with your builder code attached.
+      </p>
+      {error && <p className="auth-error">{error}</p>}
+      <div className="actions">
+        <button
+          type="button"
+          className="auth-submit"
+          onClick={enroll}
+          disabled={creating}
+        >
           {creating ? "Setting up passkey..." : "Create wallet with passkey"}
-        </Button>
-        <Button
-          variant="outline"
+        </button>
+        <button
+          type="button"
+          className="brand-pill outline"
           onClick={() => router.push("/dashboard")}
-          className="w-full"
+          style={{ alignSelf: "center" }}
         >
           Skip for now
-        </Button>
-      </CardContent>
-    </Card>
+        </button>
+      </div>
+    </div>
   );
 }

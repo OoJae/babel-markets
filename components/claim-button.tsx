@@ -10,7 +10,6 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { toWebAuthnAccount } from "viem/account-abstraction";
 import {
   WebAuthnMode,
@@ -140,21 +139,43 @@ export function ClaimButton({
   }
 
   return (
-    <div className="space-y-2">
-      <Button onClick={onClaim} disabled={disabled} size="sm" variant="default">
-        {busy ? "Claiming..." : `Claim $${Number(accruedUsdc || "0").toFixed(4)}`}
-      </Button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+      <button
+        type="button"
+        className="brand-pill"
+        onClick={onClaim}
+        disabled={disabled}
+      >
+        {busy ? "Claiming..." : `Claim $${Number(accruedUsdc || "0").toFixed(4)}`} <span>→</span>
+      </button>
       {disabledReason && !busy && (
-        <p className="text-xs text-muted-foreground">{disabledReason}</p>
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            opacity: 0.55,
+          }}
+        >
+          {disabledReason}
+        </p>
       )}
       {txHash && !busy && (
-        <p className="text-xs text-muted-foreground">
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 11,
+            letterSpacing: "0.04em",
+            opacity: 0.85,
+          }}
+        >
           Claimed:{" "}
           <a
             href={`https://testnet.arcscan.app/tx/${txHash}`}
             target="_blank"
             rel="noreferrer"
-            className="underline"
+            style={{ color: "var(--pompeii)", textDecoration: "underline" }}
           >
             {txHash.slice(0, 10)}...
           </a>

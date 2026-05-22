@@ -1,8 +1,5 @@
 // Server component: merged history of credits + claims for the signed-in
-// creator. Renders a scrollable table with kind chip, question, amount, time,
-// and ArcScan link.
-
-import { Badge } from "@/components/ui/badge";
+// creator. Brand markup; same data shape as Phase 6.
 
 export interface CreditRow {
   kind: "credit";
@@ -33,7 +30,14 @@ function arcscan(hash: string | null): string | null {
 export function PayoutHistory({ rows }: { rows: HistoryRow[] }) {
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: 12,
+          lineHeight: 1.7,
+          opacity: 0.7,
+        }}
+      >
         No payouts or credits yet. Earn a builder fee on a Polymarket fill or
         claim accrued USDC to populate this table.
       </p>
@@ -41,57 +45,48 @@ export function PayoutHistory({ rows }: { rows: HistoryRow[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-md border">
-      <table className="w-full border-collapse text-sm">
-        <thead className="bg-muted/40 text-xs text-muted-foreground">
-          <tr>
-            <th className="px-3 py-2 text-left">Kind</th>
-            <th className="px-3 py-2 text-left">Detail</th>
-            <th className="px-3 py-2 text-right">Amount</th>
-            <th className="px-3 py-2 text-left">When</th>
-            <th className="px-3 py-2 text-left">Tx</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            const ts = row.kind === "claim" ? row.settled_at ?? row.created_at : row.created_at;
-            const tx = row.kind === "claim" ? row.arc_tx : row.arc_tx;
-            const detail =
-              row.kind === "credit"
-                ? row.question_text ?? "Builder-fee credit"
-                : `Claim (${row.status})`;
-            const amount = Number(row.amount_usdc).toFixed(4);
-            return (
-              <tr key={`${row.kind}-${row.id}`} className="border-t">
-                <td className="px-3 py-2">
-                  <Badge variant={row.kind === "claim" ? "success" : "outline"}>
-                    {row.kind === "claim" ? "Claim" : "Credit"}
-                  </Badge>
-                </td>
-                <td className="px-3 py-2">{detail}</td>
-                <td className="px-3 py-2 text-right font-mono">${amount}</td>
-                <td className="px-3 py-2 text-xs text-muted-foreground">
-                  {new Date(ts).toLocaleString()}
-                </td>
-                <td className="px-3 py-2">
-                  {tx ? (
-                    <a
-                      href={arcscan(tx) ?? "#"}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs underline"
-                    >
-                      {tx.slice(0, 10)}...
-                    </a>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">pending</span>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <table className="brand-table">
+      <thead>
+        <tr>
+          <th>Kind</th>
+          <th>Detail</th>
+          <th className="right">Amount</th>
+          <th>When</th>
+          <th>Tx</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => {
+          const ts = row.kind === "claim" ? row.settled_at ?? row.created_at : row.created_at;
+          const tx = row.kind === "claim" ? row.arc_tx : row.arc_tx;
+          const detail =
+            row.kind === "credit"
+              ? row.question_text ?? "Builder-fee credit"
+              : `Claim (${row.status})`;
+          const amount = Number(row.amount_usdc).toFixed(4);
+          return (
+            <tr key={`${row.kind}-${row.id}`}>
+              <td>
+                <span className={`brand-chip ${row.kind === "claim" ? "ready" : ""}`}>
+                  {row.kind === "claim" ? "Claim" : "Credit"}
+                </span>
+              </td>
+              <td>{detail}</td>
+              <td className="right">${amount}</td>
+              <td style={{ opacity: 0.7 }}>{new Date(ts).toLocaleString()}</td>
+              <td>
+                {tx ? (
+                  <a href={arcscan(tx) ?? "#"} target="_blank" rel="noreferrer">
+                    {tx.slice(0, 10)}...
+                  </a>
+                ) : (
+                  <span style={{ opacity: 0.55 }}>pending</span>
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

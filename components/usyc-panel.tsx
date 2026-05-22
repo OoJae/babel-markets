@@ -2,11 +2,10 @@
 
 // USYC float tile, testnet stub only. Calls /api/usyc/subscribe which writes a
 // usyc_events row and returns the running float; no real Teller is touched.
+// Brand markup; the API call shape is unchanged from Phase 5/6.
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 interface FloatState {
   totalUsdcSubscribed: number;
@@ -50,39 +49,56 @@ export function UsycPanel({ initial }: { initial: FloatState }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-baseline gap-2">
-        <div className="text-3xl font-bold">${floatState.netFloatUsdc.toFixed(4)}</div>
-        <Badge variant="outline">4.8% APY</Badge>
-        <Badge variant="warning">testnet stub</Badge>
+    <div className="usyc-card">
+      <div className="row">
+        <span className="amt">${floatState.netFloatUsdc.toFixed(4)}</span>
+        <span className="pill">4.8% APY</span>
+        <span className="pill warn">testnet stub</span>
       </div>
-      <div className="text-xs text-muted-foreground">
+      <div className="meta">
         {floatState.totalUsycHeld.toFixed(4)} USYC at $1.0020 / share
       </div>
-      <div className="flex items-center gap-2">
+      <div className="controls">
         <input
           type="text"
           inputMode="decimal"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-24 rounded border bg-background px-2 py-1 text-sm font-mono"
+          className="brand-input"
+          style={{ width: 80 }}
         />
-        <Button size="sm" onClick={() => act("subscribe")} disabled={busy !== null}>
+        <button
+          type="button"
+          className="brand-pill"
+          onClick={() => act("subscribe")}
+          disabled={busy !== null}
+        >
           {busy === "subscribe" ? "Subscribing..." : "Subscribe"}
-        </Button>
+        </button>
         {floatState.totalUsycHeld > 0 && (
-          <Button
-            size="sm"
-            variant="outline"
+          <button
+            type="button"
+            className="brand-pill outline"
             onClick={() => act("redeem")}
             disabled={busy !== null}
           >
             {busy === "redeem" ? "Redeeming..." : "Redeem"}
-          </Button>
+          </button>
         )}
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <p className="text-xs text-muted-foreground">
+      {error && (
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 11,
+            color: "var(--pompeii)",
+            marginTop: 6,
+          }}
+        >
+          {error}
+        </p>
+      )}
+      <p className="compliance">
         USYC is non-US-only and KYC-allowlisted. Babel demonstrates the integration
         on testnet only; no real funds are parked.
       </p>

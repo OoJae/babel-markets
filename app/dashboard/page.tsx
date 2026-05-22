@@ -1,8 +1,12 @@
+// Creator dashboard, brand-styled. Same server-component data flow as Phase 6:
+// reads wallets / attributions / payouts / escrow_credits / questions from
+// Supabase + accrued from AttributionEscrow + USYC float from the stub.
+// Only the markup is rewritten in brand selectors.
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Nav } from "@/app/_components/Nav";
 import { SweepPanel } from "@/components/sweep-panel";
 import { UsycPanel } from "@/components/usyc-panel";
 import { ClaimButton } from "@/components/claim-button";
@@ -176,73 +180,75 @@ export default async function DashboardPage() {
     };
   });
 
-  const hasAnyData = attributions.length > 0 || history.length > 0 || recentQuestions.length > 0;
+  const hasAnyData =
+    attributions.length > 0 || history.length > 0 || recentQuestions.length > 0;
 
   return (
-    <main className="min-h-screen px-4 py-10">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold">Creator dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              Welcome back, {username}.
-            </p>
+    <>
+      <Nav linkBase="/" />
+      <main className="dash-page">
+        <div className="dash-shell">
+          <div className="dash-head">
+            <div>
+              <h1>Creator dashboard</h1>
+              <span className="welcome">Welcome back, {username}.</span>
+            </div>
+            {arcWallet ? (
+              <Link
+                href={`https://testnet.arcscan.app/address/${arcWallet}`}
+                target="_blank"
+                rel="noreferrer"
+                className="wallet-meta"
+                title={arcWallet}
+              >
+                Wallet {shortAddress(arcWallet)} on Arc testnet
+              </Link>
+            ) : (
+              <Link href="/dashboard/setup-wallet" className="wallet-meta">
+                Set up passkey wallet ↗
+              </Link>
+            )}
           </div>
-          {arcWallet ? (
-            <Link
-              href={`https://testnet.arcscan.app/address/${arcWallet}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-mono text-xs text-muted-foreground hover:underline"
-              title={arcWallet}
-            >
-              Wallet {shortAddress(arcWallet)} on Arc testnet
-            </Link>
-          ) : (
-            <Link href="/dashboard/setup-wallet" className="text-sm underline">
-              Set up passkey wallet
-            </Link>
-          )}
-        </div>
 
-        {!hasAnyData && (
-          <Card>
-            <CardContent className="space-y-3 py-6">
-              <p className="text-base">
-                No markets yet. Paste your first non-English article on the home
-                page and the question lands here with a deep link to its market
+          {!hasAnyData && (
+            <div className="dash-empty">
+              <h2>
+                No markets yet. <em>Paste your first article.</em>
+              </h2>
+              <p>
+                Head to the paste flow, drop in a non-English article, and the
+                synthesized question lands here with a deep link to its market
                 view.
               </p>
-              <Link href="/" className="inline-block underline">
-                Go to the paste box
+              <Link href="/app" className="brand-pill">
+                Open the paste flow <span>↗</span>
               </Link>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        <div className="grid gap-4 lg:grid-cols-12">
-          <Card className="lg:col-span-8">
-            <CardHeader>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <CardTitle className="text-base text-muted-foreground">
-                  Builder fees
-                </CardTitle>
-                <div className="flex flex-wrap items-baseline gap-3 text-xs text-muted-foreground">
+          <div className="dash-grid">
+            <div className="dash-card col-8">
+              <div className="dash-card-head">
+                <span className="dash-card-title">Builder fees</span>
+                <span className="dash-card-meta">
                   <span>Lifetime paid: ${totalPaid.toFixed(4)}</span>
                   {onchainAccrued !== null && (
-                    <span>
-                      Onchain accrued: ${Number(onchainAccrued).toFixed(4)}
-                    </span>
+                    <span>Onchain accrued: ${Number(onchainAccrued).toFixed(4)}</span>
                   )}
-                </div>
+                </span>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
               <SweepPanel accrued={totalAccrued} />
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-                <div>
-                  <p className="text-sm font-medium">Claim to your wallet</p>
-                  <p className="text-xs text-muted-foreground">
+              <hr
+                style={{
+                  border: 0,
+                  borderTop: "1px solid rgba(14, 14, 12, 0.15)",
+                  margin: "12px 0 4px",
+                }}
+              />
+              <div className="dash-claim-row">
+                <div className="copy">
+                  <p>Claim to your wallet</p>
+                  <p>
                     Passkey-signed userOp via Circle bundler with paymaster
                     sponsorship. You pay zero gas.
                   </p>
@@ -254,71 +260,66 @@ export default async function DashboardPage() {
                   walletAddress={arcWallet ?? null}
                 />
               </div>
-            </CardContent>
-          </Card>
-          <div className="space-y-4 lg:col-span-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base text-muted-foreground">
-                  Markets created
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-3xl font-bold">
-                {recentQuestions.length}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base text-muted-foreground">
-                  Float in USYC
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UsycPanel initial={usycFloat} />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            </div>
 
-        <div className="grid gap-4 lg:grid-cols-12">
-          <Card className="lg:col-span-7">
-            <CardHeader>
-              <CardTitle>Payout history</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PayoutHistory rows={history} />
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-5">
-            <CardHeader>
-              <CardTitle>Your recent markets</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RecentQuestions rows={recentQuestions} />
-            </CardContent>
-          </Card>
-        </div>
-
-        {escrowAddress && (
-          <p className="text-xs text-muted-foreground">
-            AttributionEscrow{" "}
-            <a
-              href={`https://testnet.arcscan.app/address/${escrowAddress}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-mono underline"
+            <div
+              className="col-4"
+              style={{ display: "flex", flexDirection: "column", gap: 20 }}
             >
-              {shortAddress(escrowAddress)}
-            </a>{" "}
-            on Arc testnet.
-          </p>
-        )}
-        {!escrowAddress && (
-          <Badge variant="warning">
-            AttributionEscrow not deployed yet. Run scripts/deploy-escrow.ts.
-          </Badge>
-        )}
-      </div>
-    </main>
+              <div className="dash-card">
+                <div className="dash-card-head">
+                  <span className="dash-card-title">Markets created</span>
+                </div>
+                <div className="dash-stat">{recentQuestions.length}</div>
+                <div className="dash-stat-sub">all-time synthesized</div>
+              </div>
+              <div className="dash-card">
+                <div className="dash-card-head">
+                  <span className="dash-card-title">Float in USYC</span>
+                </div>
+                <UsycPanel initial={usycFloat} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ height: 24 }} />
+
+          <div className="dash-grid">
+            <div className="dash-card col-7">
+              <div className="dash-card-head">
+                <span className="dash-section-title">Payout history</span>
+              </div>
+              <PayoutHistory rows={history} />
+            </div>
+            <div className="dash-card col-5">
+              <div className="dash-card-head">
+                <span className="dash-section-title">Your recent markets</span>
+              </div>
+              <RecentQuestions rows={recentQuestions} />
+            </div>
+          </div>
+
+          {escrowAddress ? (
+            <p className="dash-foot-note">
+              AttributionEscrow{" "}
+              <a
+                href={`https://testnet.arcscan.app/address/${escrowAddress}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {shortAddress(escrowAddress)}
+              </a>{" "}
+              on Arc testnet.
+            </p>
+          ) : (
+            <p className="dash-foot-note">
+              <span className="dash-warn">
+                AttributionEscrow not deployed yet. Run scripts/deploy-escrow.ts.
+              </span>
+            </p>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

@@ -1,22 +1,33 @@
 // Geo-gate page. Shown when the middleware detects a US IP and the user has not
 // self-attested as non-US. Polymarket prohibits US-person trading, so we hard-stop.
 
+import Link from "next/link";
+
 export default function GeoGatePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-lg space-y-4 text-center">
-        <h1 className="text-2xl font-bold">This region is not supported</h1>
-        <p className="text-muted-foreground">
-          Babel Markets posts to Polymarket, which prohibits trading by US persons.
-          If you are not a US person, you can self-attest from the compliance banner
-          on the landing page. We use a cookie to remember your attestation; we do
-          not perform KYC at this time.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Babel is also testnet-only for the hackathon period. No real user funds
-          are at risk.
-        </p>
-      </div>
+    <main className="auth-page">
+      <header className="auth-head">
+        <Link href="/" className="mark">
+          babel/markets
+        </Link>
+      </header>
+      <section className="auth-main">
+        <div className="auth-card geo-card">
+          <h1>
+            This region is <em>not supported.</em>
+          </h1>
+          <p>
+            Babel Markets posts to Polymarket, which prohibits trading by US persons.
+            If you are not a US person, you can self-attest from the compliance banner
+            on the landing page. We use a cookie to remember your attestation; we do
+            not perform KYC at this time.
+          </p>
+          <p style={{ opacity: 0.7 }}>
+            Babel is testnet-only for the hackathon period. No real user funds are at
+            risk.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

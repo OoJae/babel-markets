@@ -4,7 +4,6 @@
 // steps inline. Kept collapsed by default so the market view loads fast.
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
 interface Props {
   cid: string;
@@ -59,54 +58,72 @@ export function TraceExpander({ cid }: Props) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
+    <div className="market-provenance">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <p className="cid">
           Reasoning trace pinned at{" "}
-          <a
-            className="font-mono underline"
-            href={ipfsGatewayUrl(cid)}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href={ipfsGatewayUrl(cid)} target="_blank" rel="noreferrer">
             {cid.slice(0, 14)}...
           </a>
         </p>
-        <Button variant="outline" size="sm" onClick={toggle}>
+        <button type="button" className="brand-pill outline" onClick={toggle}>
           {open ? "Hide" : "Show"} trace
-        </Button>
+        </button>
       </div>
 
       {open && (
-        <div className="space-y-2">
+        <>
           {loading && (
-            <p className="text-sm text-muted-foreground">Fetching from IPFS...</p>
-          )}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {trace?.steps?.map((step, idx) => (
-            <details
-              key={`${step.step ?? idx}-${idx}`}
-              className="rounded border bg-muted/30 px-3 py-2"
+            <p
+              style={{
+                fontFamily: "var(--f-mono)",
+                fontSize: 12,
+                opacity: 0.7,
+                marginTop: 12,
+              }}
             >
-              <summary className="cursor-pointer text-xs font-mono">
+              Fetching from IPFS...
+            </p>
+          )}
+          {error && (
+            <p
+              style={{
+                fontFamily: "var(--f-mono)",
+                fontSize: 12,
+                color: "var(--pompeii)",
+                marginTop: 12,
+              }}
+            >
+              {error}
+            </p>
+          )}
+          {trace?.steps?.map((step, idx) => (
+            <details key={`${step.step ?? idx}-${idx}`}>
+              <summary>
                 {idx + 1}. {step.step ?? "step"}
                 {typeof step.latencyMs === "number" && (
-                  <span className="ml-2 text-muted-foreground">
+                  <span style={{ marginLeft: 8, opacity: 0.6 }}>
                     {step.latencyMs}ms
                   </span>
                 )}
                 {typeof step.costUsdc === "number" && (
-                  <span className="ml-2 text-muted-foreground">
+                  <span style={{ marginLeft: 8, opacity: 0.6 }}>
                     ${step.costUsdc.toFixed(6)}
                   </span>
                 )}
               </summary>
-              <pre className="mt-2 overflow-x-auto rounded bg-background p-2 text-xs">
-                {JSON.stringify(step.output ?? null, null, 2)}
-              </pre>
+              <pre>{JSON.stringify(step.output ?? null, null, 2)}</pre>
             </details>
           ))}
-        </div>
+        </>
       )}
     </div>
   );

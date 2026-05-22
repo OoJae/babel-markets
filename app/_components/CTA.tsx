@@ -8,13 +8,18 @@ export function CTA() {
       </h2>
 
       <div className="cta-actions" data-reveal data-reveal-delay="1">
-        <a href="#agent" className="cta-primary">
+        <a href="/app" className="cta-primary">
           Open Babel <span>↗</span>
         </a>
-        <a href="/app" className="cta-secondary">
-          Read the playbook
+        <a href="/dashboard" className="cta-secondary">
+          Creator dashboard
         </a>
-        <a href="https://github.com/OoJae/babel-markets" target="_blank" rel="noreferrer" className="cta-secondary">
+        <a
+          href="https://github.com/OoJae/babel-markets"
+          target="_blank"
+          rel="noreferrer"
+          className="cta-secondary"
+        >
           View on GitHub
         </a>
       </div>

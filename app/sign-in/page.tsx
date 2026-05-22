@@ -4,9 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -31,40 +28,52 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign in to Babel</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={submit} className="space-y-4">
-            <Input
+    <main className="auth-page">
+      <header className="auth-head">
+        <Link href="/" className="mark">
+          babel/markets
+        </Link>
+        <Link href="/sign-up">No account? Create one ↗</Link>
+      </header>
+      <section className="auth-main">
+        <form className="auth-card" onSubmit={submit}>
+          <h1>
+            Sign in to <em>Babel.</em>
+          </h1>
+          <p className="auth-tagline">Pick up where you left off.</p>
+          {error && <p className="auth-error">{error}</p>}
+          <div className="auth-field">
+            <label htmlFor="signin-email">Email</label>
+            <input
+              id="signin-email"
+              className="auth-input"
               type="email"
-              placeholder="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
             />
-            <Input
+          </div>
+          <div className="auth-field">
+            <label htmlFor="signin-password">Password</label>
+            <input
+              id="signin-password"
+              className="auth-input"
               type="password"
-              placeholder="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={busy} className="w-full">
-              {busy ? "Signing in..." : "Sign in"}
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              No account?{" "}
-              <Link href="/sign-up" className="underline">
-                Create one
-              </Link>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <button type="submit" className="auth-submit" disabled={busy}>
+            {busy ? "Signing in..." : "Sign in"}
+          </button>
+          <p className="auth-foot">
+            No account? <Link href="/sign-up">Create one</Link>
+          </p>
+        </form>
+      </section>
     </main>
   );
 }

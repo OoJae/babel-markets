@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import { Anton, Cormorant_Garamond, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import "./brand.css";
 
 const anton = Anton({
   weight: "400",
@@ -39,8 +40,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${GeistSans.variable} ${GeistMono.variable} ${anton.variable} ${cormorant.variable} ${jetbrains.variable}`}
     >
-      <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
+      <body className="min-h-screen antialiased">
+        <div className="brand-shell">{children}</div>
         <Toaster position="bottom-right" richColors />
       </body>
     </html>

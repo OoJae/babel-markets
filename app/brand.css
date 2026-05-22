@@ -141,7 +141,7 @@
   justify-self: end;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   font-family: var(--f-mono);
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -168,6 +168,29 @@
   background: var(--parchment);
   color: var(--ink);
   border-color: var(--parchment);
+}
+
+/* Secondary nav CTA. Same pill shape, lighter weight: dotted accent on hover
+   instead of a full Pompeii flood so the primary "Open Babel" stays dominant. */
+.brand-shell .nav-cta.nav-cta-secondary {
+  opacity: 0.7;
+}
+.brand-shell .nav-cta.nav-cta-secondary:hover {
+  opacity: 1;
+  background: transparent;
+  color: var(--pompeii);
+  border-color: var(--pompeii);
+}
+.brand-shell .nav.dark .nav-cta.nav-cta-secondary:hover {
+  background: transparent;
+  color: var(--pompeii);
+  border-color: var(--pompeii);
+}
+
+@media (max-width: 720px) {
+  .brand-shell .nav-cta.nav-cta-secondary {
+    display: none;
+  }
 }
 
 /* scroll progress dots, bottom-right */
@@ -1568,3 +1591,1107 @@
   .brand-shell .hero-meta.tr,
   .brand-shell .hero-meta.br { display: none; }
 }
+
+/* ============================================================
+   /app PAGE
+   Brand-styled paste flow. Parchment body, ink-inverse agent stage,
+   trust-signals grid, slim colophon. Reuses the landing .agent-stage,
+   .agent-input, .agent-pipe block selectors for the two-column paste UI.
+   ============================================================ */
+.brand-shell .app-hero {
+  position: relative;
+  padding: 120px 32px 56px;
+  background: var(--parchment);
+  border-bottom: 1px solid var(--ink);
+}
+.brand-shell .app-hero h1 {
+  font-family: var(--f-display);
+  font-size: clamp(64px, 8.5vw, 160px);
+  line-height: 0.88;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  max-width: 14ch;
+}
+.brand-shell .app-hero h1 em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--pompeii);
+  font-size: 0.7em;
+  letter-spacing: -0.01em;
+}
+.brand-shell .app-hero p {
+  margin-top: 24px;
+  max-width: 560px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.85;
+}
+
+.brand-shell .app-stage {
+  background: var(--ink);
+  color: var(--parchment);
+  padding: 56px 32px 80px;
+  border-bottom: 1px solid var(--ink);
+}
+
+/* Brand textarea inside the .agent-input column. The landing AgentDemo uses
+   a static .ai-source div; here it is a real <textarea> the user types into. */
+.brand-shell .ai-textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--f-serif);
+  font-size: 22px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--ink);
+  padding: 0;
+  margin: 0;
+  min-height: 220px;
+}
+.brand-shell .ai-textarea::placeholder {
+  color: var(--ink);
+  opacity: 0.35;
+  font-style: italic;
+}
+.brand-shell .ai-textarea:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.brand-shell .ai-samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.brand-shell .ai-sample {
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 100px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: background 0.2s, color 0.2s;
+}
+.brand-shell .ai-sample:hover {
+  background: var(--ink);
+  color: var(--parchment);
+}
+.brand-shell .ai-sample:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.brand-shell .ap-meta-stack {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(236, 228, 208, 0.15);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+.brand-shell .ap-meta-stack .row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  padding: 4px 0;
+}
+.brand-shell .ap-meta-stack .row .k {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.brand-shell .ap-meta-stack .row .v {
+  font-size: 12px;
+  word-break: break-word;
+}
+.brand-shell .ap-meta-stack a {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
+.brand-shell .ap-error {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--pompeii);
+  color: var(--pompeii);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  background: rgba(178, 58, 42, 0.08);
+}
+
+.brand-shell .app-trust {
+  background: var(--parchment);
+  color: var(--ink);
+  padding: 56px 32px;
+  border-bottom: 1px solid var(--ink);
+}
+.brand-shell .app-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  border: 1px solid var(--ink);
+  background: rgba(14, 14, 12, 0.05);
+}
+.brand-shell .app-trust-grid > div {
+  padding: 20px;
+  background: var(--parchment);
+  font-family: var(--f-mono);
+  border-right: 1px solid rgba(14, 14, 12, 0.15);
+}
+.brand-shell .app-trust-grid > div:last-child {
+  border-right: none;
+}
+.brand-shell .app-trust-grid .k {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 8px;
+}
+.brand-shell .app-trust-grid .v {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+.brand-shell .app-trust-grid .v.on {
+  color: #2f6f3c;
+}
+.brand-shell .app-trust-grid .v.off {
+  opacity: 0.55;
+}
+.brand-shell .app-trust-grid a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.brand-shell .app-foot-strip {
+  background: var(--parchment);
+  color: var(--ink);
+  padding: 24px 32px 64px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+@media (max-width: 900px) {
+  .brand-shell .app-trust-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .brand-shell .app-trust-grid > div {
+    border-right: none;
+    border-bottom: 1px solid rgba(14, 14, 12, 0.15);
+  }
+}
+
+/* ============================================================
+   DASHBOARD (/dashboard)
+   ============================================================ */
+.brand-shell .dash-page {
+  background: var(--parchment);
+  color: var(--ink);
+  padding: 120px 32px 64px;
+  min-height: 100vh;
+}
+.brand-shell .dash-shell { max-width: 1280px; margin: 0 auto; }
+.brand-shell .dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.brand-shell .dash-head h1 {
+  font-family: var(--f-display);
+  font-size: clamp(48px, 6vw, 96px);
+  line-height: 0.86;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+.brand-shell .dash-head .welcome {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--pompeii);
+  margin-top: 6px;
+  display: block;
+}
+.brand-shell .dash-head .wallet-meta {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  text-align: right;
+}
+.brand-shell .dash-head .wallet-meta a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.brand-shell .dash-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+}
+.brand-shell .dash-grid > .col-8 { grid-column: span 8; }
+.brand-shell .dash-grid > .col-7 { grid-column: span 7; }
+.brand-shell .dash-grid > .col-5 { grid-column: span 5; }
+.brand-shell .dash-grid > .col-4 { grid-column: span 4; }
+.brand-shell .dash-grid > .col-12 { grid-column: span 12; }
+
+.brand-shell .dash-card {
+  background: var(--parchment);
+  border: 1px solid var(--ink);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.brand-shell .dash-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(14, 14, 12, 0.15);
+}
+.brand-shell .dash-card-title {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.brand-shell .dash-card-meta {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.brand-shell .dash-stat {
+  font-family: var(--f-display);
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+.brand-shell .dash-stat-sub {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-top: 6px;
+}
+.brand-shell .dash-section-title {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+.brand-shell .dash-claim-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand-shell .dash-claim-row .copy p:first-child {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.brand-shell .dash-claim-row .copy p + p {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  opacity: 0.7;
+  margin-top: 4px;
+  max-width: 360px;
+}
+
+.brand-shell .dash-empty {
+  background: var(--parchment-deep);
+  border: 1px solid var(--ink);
+  padding: 32px;
+  margin-bottom: 32px;
+}
+.brand-shell .dash-empty h2 {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+.brand-shell .dash-empty h2 em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--pompeii);
+}
+.brand-shell .dash-empty p {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  max-width: 520px;
+  margin-bottom: 16px;
+  opacity: 0.85;
+}
+
+.brand-shell .dash-foot-note {
+  margin-top: 32px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.brand-shell .dash-foot-note a {
+  color: inherit;
+  text-decoration: underline;
+}
+.brand-shell .dash-warn {
+  display: inline-block;
+  background: var(--pompeii);
+  color: var(--parchment);
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.brand-shell .brand-input {
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  border-radius: 100px;
+  width: 110px;
+}
+.brand-shell .brand-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.brand-shell .brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ink);
+  color: var(--parchment);
+  border: none;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+.brand-shell .brand-pill:hover { background: var(--pompeii); }
+.brand-shell .brand-pill.outline {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+.brand-shell .brand-pill.outline:hover {
+  background: var(--ink);
+  color: var(--parchment);
+}
+.brand-shell .brand-pill:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.brand-shell .sweep-events {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.brand-shell .sweep-event {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(14, 14, 12, 0.15);
+}
+.brand-shell .sweep-event .n {
+  font-family: var(--f-display);
+  font-size: 14px;
+  color: var(--pompeii);
+}
+.brand-shell .sweep-event .lbl b {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.brand-shell .sweep-event .lbl span {
+  display: block;
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 14px;
+  opacity: 0.7;
+}
+.brand-shell .sweep-event .lnk {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  color: var(--pompeii);
+}
+
+.brand-shell .usyc-card .row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand-shell .usyc-card .row .amt {
+  font-family: var(--f-display);
+  font-size: clamp(36px, 4.5vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.brand-shell .usyc-card .pill {
+  display: inline-flex;
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.brand-shell .usyc-card .pill.warn {
+  background: var(--pompeii);
+  color: var(--parchment);
+  border-color: var(--pompeii);
+}
+.brand-shell .usyc-card .meta {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.brand-shell .usyc-card .compliance {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  opacity: 0.6;
+  margin-top: 8px;
+}
+.brand-shell .usyc-card .controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.brand-shell .brand-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--f-mono);
+  font-size: 12px;
+}
+.brand-shell .brand-table thead {
+  border-bottom: 1px solid var(--ink);
+}
+.brand-shell .brand-table thead th {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  padding: 8px 8px;
+  font-weight: 500;
+}
+.brand-shell .brand-table tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px dashed rgba(14, 14, 12, 0.15);
+  vertical-align: top;
+}
+.brand-shell .brand-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.brand-shell .brand-table .right { text-align: right; }
+.brand-shell .brand-table a {
+  color: var(--pompeii);
+  text-decoration: underline;
+}
+
+.brand-shell .brand-chip {
+  display: inline-flex;
+  padding: 3px 9px;
+  border-radius: 100px;
+  border: 1px solid var(--ink);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink);
+}
+.brand-shell .brand-chip.ready {
+  background: #2f6f3c;
+  color: var(--parchment);
+  border-color: #2f6f3c;
+}
+.brand-shell .brand-chip.warn {
+  background: var(--pompeii);
+  color: var(--parchment);
+  border-color: var(--pompeii);
+}
+.brand-shell .brand-chip.dark {
+  background: var(--ink);
+  color: var(--parchment);
+  border-color: var(--ink);
+}
+
+.brand-shell .recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.brand-shell .recent-card {
+  display: block;
+  border: 1px solid var(--ink);
+  background: var(--parchment);
+  padding: 14px 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+.brand-shell .recent-card:hover {
+  background: var(--parchment-deep);
+}
+.brand-shell .recent-card .q {
+  font-family: var(--f-serif);
+  font-size: 17px;
+  line-height: 1.35;
+}
+.brand-shell .recent-card .meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.brand-shell .recent-card .meta .amt {
+  color: var(--pompeii);
+  font-weight: 700;
+}
+
+/* ============================================================
+   MARKET VIEW (/market/[id])
+   ============================================================ */
+.brand-shell .market-page {
+  background: var(--parchment);
+  color: var(--ink);
+  padding: 96px 32px 80px;
+  min-height: 100vh;
+}
+.brand-shell .market-shell { max-width: 1180px; margin: 0 auto; }
+.brand-shell .market-mini-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(236, 228, 208, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(14, 14, 12, 0.1);
+}
+.brand-shell .market-mini-nav .mark {
+  font-family: var(--f-mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: inherit;
+}
+.brand-shell .market-mini-nav .links {
+  display: flex;
+  gap: 18px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.brand-shell .market-mini-nav .links a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.75;
+}
+.brand-shell .market-mini-nav .links a:hover { opacity: 1; color: var(--pompeii); }
+
+.brand-shell .market-chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.brand-shell .market-h1 {
+  font-family: var(--f-serif);
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 32px;
+  max-width: 32ch;
+}
+
+.brand-shell .market-grid {
+  display: grid;
+  grid-template-columns: 8fr 4fr;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.brand-shell .market-card {
+  background: var(--parchment);
+  border: 1px solid var(--ink);
+  padding: 24px;
+}
+.brand-shell .market-card + .market-card { margin-top: 16px; }
+.brand-shell .market-card .lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(14, 14, 12, 0.15);
+}
+.brand-shell .market-card.dark {
+  background: var(--ink);
+  color: var(--parchment);
+  border-color: var(--ink);
+}
+.brand-shell .market-card.dark .lbl {
+  opacity: 0.55;
+  border-bottom-color: rgba(236, 228, 208, 0.15);
+}
+
+.brand-shell .market-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.brand-shell .market-status-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-shell .market-status-step .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(14, 14, 12, 0.18);
+}
+.brand-shell .market-status-step.done .dot { background: #2f6f3c; }
+.brand-shell .market-status-step.active .dot {
+  background: var(--pompeii);
+  animation: brand-pulse 1.6s ease-in-out infinite;
+}
+.brand-shell .market-status-step.future { opacity: 0.5; }
+.brand-shell .market-status-sep {
+  width: 22px;
+  height: 1px;
+  background: rgba(14, 14, 12, 0.25);
+}
+
+.brand-shell .market-rule {
+  font-family: var(--f-serif);
+  font-size: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.brand-shell .market-source {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(14, 14, 12, 0.15);
+  font-family: var(--f-mono);
+  font-size: 12px;
+}
+.brand-shell .market-source a {
+  color: var(--pompeii);
+  text-decoration: underline;
+}
+.brand-shell .market-expiry {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  margin-top: 8px;
+}
+
+.brand-shell .market-numbers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  font-family: var(--f-mono);
+}
+.brand-shell .market-numbers .k {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.brand-shell .market-numbers .v {
+  font-family: var(--f-mono);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.brand-shell .market-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-family: var(--f-mono);
+}
+.brand-shell .market-bar .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.brand-shell .market-bar .row .v { opacity: 0.7; }
+.brand-shell .market-bar .track {
+  height: 6px;
+  background: rgba(14, 14, 12, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.brand-shell .market-bar .fill {
+  height: 100%;
+  background: var(--ink);
+}
+
+.brand-shell .market-builder p {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.brand-shell .market-builder a {
+  color: var(--pompeii);
+  text-decoration: underline;
+  font-family: var(--f-mono);
+  font-size: 11px;
+}
+
+.brand-shell .market-provenance .cid {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.brand-shell .market-provenance .cid a {
+  color: var(--pompeii);
+  text-decoration: underline;
+}
+.brand-shell .market-provenance details {
+  margin-top: 16px;
+  border: 1px solid rgba(14, 14, 12, 0.15);
+  padding: 12px 14px;
+  background: var(--parchment-deep);
+}
+.brand-shell .market-provenance details summary {
+  cursor: pointer;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.brand-shell .market-provenance details pre {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--parchment);
+  border: 1px solid rgba(14, 14, 12, 0.1);
+}
+
+/* ============================================================
+   AUTH (/sign-in, /sign-up, /geo-gate, /setup-wallet)
+   ============================================================ */
+.brand-shell .auth-page {
+  min-height: 100vh;
+  background: var(--parchment);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+.brand-shell .auth-head {
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(14, 14, 12, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.brand-shell .auth-head .mark {
+  font-family: var(--f-mono);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: inherit;
+}
+.brand-shell .auth-head a { color: inherit; text-decoration: none; opacity: 0.8; }
+.brand-shell .auth-head a:hover { opacity: 1; }
+
+.brand-shell .auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+}
+.brand-shell .auth-card {
+  background: var(--parchment);
+  border: 1px solid var(--ink);
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+}
+.brand-shell .auth-card h1 {
+  font-family: var(--f-display);
+  font-size: clamp(36px, 4vw, 56px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.brand-shell .auth-card h1 em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--pompeii);
+  font-size: 0.7em;
+}
+.brand-shell .auth-tagline {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 16px;
+  opacity: 0.75;
+  margin-bottom: 28px;
+}
+.brand-shell .auth-field { display: block; margin-bottom: 16px; }
+.brand-shell .auth-field label {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 6px;
+}
+.brand-shell .auth-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 4px;
+}
+.brand-shell .auth-input:focus {
+  outline: 2px solid var(--pompeii);
+  outline-offset: -1px;
+}
+.brand-shell .auth-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.brand-shell .auth-checkbox input {
+  margin-top: 3px;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--pompeii);
+}
+.brand-shell .auth-submit {
+  width: 100%;
+  background: var(--ink);
+  color: var(--parchment);
+  border: none;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px 22px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.brand-shell .auth-submit:hover { background: var(--pompeii); }
+.brand-shell .auth-submit:disabled { opacity: 0.5; cursor: wait; }
+.brand-shell .auth-error {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--pompeii);
+  background: rgba(178, 58, 42, 0.08);
+  color: var(--pompeii);
+  font-family: var(--f-mono);
+  font-size: 12px;
+}
+.brand-shell .auth-success {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid #2f6f3c;
+  background: rgba(47, 111, 60, 0.08);
+  color: #2f6f3c;
+  font-family: var(--f-mono);
+  font-size: 12px;
+}
+.brand-shell .auth-foot {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(14, 14, 12, 0.15);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-align: center;
+  opacity: 0.75;
+}
+.brand-shell .auth-foot a {
+  color: var(--pompeii);
+  text-decoration: underline;
+}
+
+.brand-shell .geo-card { text-align: center; }
+.brand-shell .geo-card h1 em { display: block; }
+.brand-shell .geo-card p {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+.brand-shell .passkey-card .copy {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+  opacity: 0.85;
+}
+.brand-shell .passkey-card .actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* compliance banner */
+.brand-shell .compliance-bar {
+  background: var(--pompeii);
+  color: var(--parchment);
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  flex-wrap: wrap;
+}
+.brand-shell .compliance-bar strong {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-right: 6px;
+}
+.brand-shell .compliance-bar .actions {
+  display: flex;
+  gap: 8px;
+}
+.brand-shell .compliance-bar button {
+  background: var(--parchment);
+  color: var(--ink);
+  border: none;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+.brand-shell .compliance-bar button.outline {
+  background: transparent;
+  color: var(--parchment);
+  border: 1px solid var(--parchment);
+}
+
+@media (max-width: 900px) {
+  .brand-shell .dash-grid { grid-template-columns: 1fr; }
+  .brand-shell .dash-grid > .col-8,
+  .brand-shell .dash-grid > .col-7,
+  .brand-shell .dash-grid > .col-5,
+  .brand-shell .dash-grid > .col-4,
+  .brand-shell .dash-grid > .col-12 { grid-column: span 1; }
+  .brand-shell .market-grid { grid-template-columns: 1fr; }
+}
+
