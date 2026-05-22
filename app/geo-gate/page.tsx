@@ -7,8 +7,12 @@ export default function GeoGatePage() {
   return (
     <main className="auth-page">
       <header className="auth-head">
-        <Link href="/" className="mark">
-          babel/markets
+        <Link href="/" className="b-mark" style={{ fontSize: 18 }}>
+          <span className="glyph">
+            <i />
+            <u />
+          </span>
+          BABEL
         </Link>
       </header>
       <section className="auth-main">

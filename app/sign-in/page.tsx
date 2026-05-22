@@ -30,8 +30,12 @@ export default function SignInPage() {
   return (
     <main className="auth-page">
       <header className="auth-head">
-        <Link href="/" className="mark">
-          babel/markets
+        <Link href="/" className="b-mark" style={{ fontSize: 18 }}>
+          <span className="glyph">
+            <i />
+            <u />
+          </span>
+          BABEL
         </Link>
         <Link href="/sign-up">No account? Create one ↗</Link>
       </header>

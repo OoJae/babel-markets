@@ -10,6 +10,7 @@ import { Nav } from "@/app/_components/Nav";
 import { SweepPanel } from "@/components/sweep-panel";
 import { UsycPanel } from "@/components/usyc-panel";
 import { ClaimButton } from "@/components/claim-button";
+import { SignOutButton } from "@/components/sign-out-button";
 import {
   PayoutHistory,
   type CreditRow,
@@ -193,21 +194,27 @@ export default async function DashboardPage() {
               <h1>Creator dashboard</h1>
               <span className="welcome">Welcome back, {username}.</span>
             </div>
-            {arcWallet ? (
-              <Link
-                href={`https://testnet.arcscan.app/address/${arcWallet}`}
-                target="_blank"
-                rel="noreferrer"
-                className="wallet-meta"
-                title={arcWallet}
-              >
-                Wallet {shortAddress(arcWallet)} on Arc testnet
-              </Link>
-            ) : (
-              <Link href="/dashboard/setup-wallet" className="wallet-meta">
-                Set up passkey wallet ↗
-              </Link>
-            )}
+            <div className="wallet-meta" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+              {arcWallet ? (
+                <Link
+                  href={`https://testnet.arcscan.app/address/${arcWallet}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={arcWallet}
+                  style={{ color: "inherit", textDecoration: "underline" }}
+                >
+                  Wallet {shortAddress(arcWallet)} on Arc testnet
+                </Link>
+              ) : (
+                <Link
+                  href="/dashboard/setup-wallet"
+                  style={{ color: "inherit", textDecoration: "underline" }}
+                >
+                  Set up passkey wallet ↗
+                </Link>
+              )}
+              <SignOutButton />
+            </div>
           </div>
 
           {!hasAnyData && (

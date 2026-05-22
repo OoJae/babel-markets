@@ -191,8 +191,12 @@ export default async function MarketPage({ params }: PageProps) {
     <>
       <ComplianceBanner />
       <nav className="market-mini-nav">
-        <Link href="/" className="mark">
-          babel/markets
+        <Link href="/" className="b-mark" style={{ fontSize: 16 }}>
+          <span className="glyph">
+            <i />
+            <u />
+          </span>
+          BABEL
         </Link>
         <div className="links">
           <Link href="/app">Open Babel ↗</Link>

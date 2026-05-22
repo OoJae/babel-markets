@@ -22,12 +22,6 @@ interface SweepEvent {
   note?: string;
 }
 
-interface InitEvent {
-  sweepId: string;
-  mock: boolean;
-  amountUsdc: string;
-}
-
 interface DoneEvent {
   sweepId: string;
   mock: boolean;
@@ -64,7 +58,8 @@ const STAGE_NOTE: Record<SweepEvent["stage"], string> = {
 export function SweepPanel({ accrued }: { accrued: number }) {
   const [running, setRunning] = useState(false);
   const [amount, setAmount] = useState("0.1");
-  const [init, setInit] = useState<InitEvent | null>(null);
+  // The init event from /api/escrow/sweep is still received; we just don't
+  // need to surface it in the UI now that the "demo mode" chip is gone.
   const [events, setEvents] = useState<SweepEvent[]>([]);
   const [done, setDone] = useState<DoneEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +69,6 @@ export function SweepPanel({ accrued }: { accrued: number }) {
     setEvents([]);
     setDone(null);
     setError(null);
-    setInit(null);
     try {
       const res = await fetch("/api/escrow/sweep", {
         method: "POST",
@@ -102,8 +96,9 @@ export function SweepPanel({ accrued }: { accrued: number }) {
           if (!evMatch || !dataMatch) continue;
           const evType = evMatch[1];
           const payload = JSON.parse(dataMatch[1]);
-          if (evType === "init") setInit(payload as InitEvent);
-          else if (evType === "progress") setEvents((p) => [...p, payload as SweepEvent]);
+          if (evType === "init") {
+            // sweepId / mock flag arrive here but we no longer render either.
+          } else if (evType === "progress") setEvents((p) => [...p, payload as SweepEvent]);
           else if (evType === "done") {
             const d = payload as DoneEvent;
             setDone(d);
@@ -139,24 +134,11 @@ export function SweepPanel({ accrued }: { accrued: number }) {
     }
   }
 
-  const isMockMode = init?.mock || (!init && !running);
-
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <div className="dash-stat">${accrued.toFixed(4)}</div>
-          <div className="dash-stat-sub">Accrued USDC ready to sweep</div>
-        </div>
-        {isMockMode && <span className="brand-chip">demo mode</span>}
+      <div>
+        <div className="dash-stat">${accrued.toFixed(4)}</div>
+        <div className="dash-stat-sub">Accrued USDC ready to sweep</div>
       </div>
 
       <div

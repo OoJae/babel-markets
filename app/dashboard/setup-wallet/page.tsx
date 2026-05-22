@@ -15,8 +15,12 @@ export default async function SetupWalletPage() {
   return (
     <main className="auth-page">
       <header className="auth-head">
-        <Link href="/" className="mark">
-          babel/markets
+        <Link href="/" className="b-mark" style={{ fontSize: 18 }}>
+          <span className="glyph">
+            <i />
+            <u />
+          </span>
+          BABEL
         </Link>
         <Link href="/dashboard">Dashboard ↗</Link>
       </header>
