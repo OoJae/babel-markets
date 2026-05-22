@@ -28,17 +28,23 @@ This mirrors the layered prediction-market stack the Canteen essay describes: in
 
 ## Status
 
-Phases 1 through 5 have shipped:
+Phases 1 through 7 have shipped:
 
 - **Phase 1**: Repo scaffold, Supabase schema with `pgvector`, Modular Wallets passkey enrollment lifted from `arc-p2p-payments`, geo-gate middleware, Irys IPFS pinning.
 - **Phase 2**: Real multi-step agent loop on mimo-v2.5-pro through an Anthropic-compatible gateway, Voyage AI embeddings, 5-axis self-critique rubric, eval harness against multilingual fixtures.
 - **Phase 3**: Polymarket V2 CLOB v2 client with builder code attached to signed EIP-712 orders, Gamma metadata matcher, IPFS provenance per question.
-- **Phase 4**: Gateway Nanopayments wired through the seller relay at `/api/babel-nanopay`. Each agent step settles a real testnet Nanopayment on Arc; the paste box shows per-step USDC receipts with the settlement tx hash.
+- **Phase 4**: Gateway Nanopayments wired through the seller relay at `/api/babel-nanopay`. Each agent step settles a real testnet Nanopayment on Arc.
 - **Phase 5**: Live CCTP v2 sweep Polygon Amoy to Arc testnet, AttributionEscrow contract deployable to Arc, USYC float as a documented testnet stub, EURC routing wired through the question schema, market view, and post-market preview.
+- **Phase 6**: Claim flow wired to AttributionEscrow via passkey-signed paymaster-sponsored userOps, dashboard payout history + recent questions, market view status timeline + live numbers + per-axis quality bars, landing page trust signals.
+- **Phase 7**: Brand landing at `/` ported from a designed source into the Next.js App Router. Anton + Cormorant + JetBrains Mono via `next/font`, parchment / ink / Pompeii palette tokens, Tower of Babel + hero bust as Three.js scenes, multi-timezone nav clock, light/dark section flow, drift parallax, language ticker, scroll reveals, AgentDemo wired to the live `/api/agent/stream` with a canned simulation fallback.
 
-What lands next:
+## Route map
 
-- **Phase 6**: market view design polish, creator dashboard payout history, Modular Wallet `claim()` wired to AttributionEscrow, video demo polish.
+- `/` brand landing (eight sections, marketing route group, scoped brand palette).
+- `/app` raw paste fixture (trust signals + ComplianceBanner + the original PasteBox; useful for dev demos that skip the brand frame).
+- `/dashboard` creator dashboard (shadcn theme, sweep + claim + payouts + recent markets).
+- `/market/[id]` per-question market view (shadcn theme, status timeline + quality bars + IPFS trace).
+- `/sign-in`, `/sign-up`, `/geo-gate`, `/dashboard/setup-wallet` plus the agent / escrow / USYC / Nanopay API routes.
 
 ## Architecture vocabulary
 

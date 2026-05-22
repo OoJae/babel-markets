@@ -25,6 +25,26 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
+
+    /* Babel Markets brand tokens. Used by app/(marketing)/brand.css, scoped
+       under .brand-shell. Living here makes the variables available to any
+       child stylesheet without forcing the parchment palette on the shadcn
+       routes. */
+    --parchment: #ece4d0;
+    --parchment-deep: #ddd2b8;
+    --ink: #0e0e0c;
+    --ink-2: #1a1916;
+    --marble: #a8a294;
+    --pompeii: #b23a2a;
+    --pompeii-deep: #8c2a1d;
+    --gold: #b8975a;
+    --paper-grain: rgba(14, 14, 12, 0.04);
+
+    --f-display: var(--font-anton), "Archivo Black", Impact, sans-serif;
+    --f-serif: var(--font-cormorant), "EB Garamond", Georgia, serif;
+    --f-mono: var(--font-jetbrains), "Space Mono", ui-monospace, monospace;
+
+    --section-pad: clamp(64px, 8vw, 140px);
   }
 
   .dark {
