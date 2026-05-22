@@ -39,6 +39,7 @@ Phases 1 through 9 have shipped:
 - **Phase 7**: Brand landing at `/` ported from a designed source into the Next.js App Router. Anton + Cormorant + JetBrains Mono via `next/font`, parchment / ink / Pompeii palette tokens, Tower of Babel + hero bust as Three.js scenes, multi-timezone nav clock, light/dark section flow, drift parallax, language ticker, scroll reveals, AgentDemo wired to the live `/api/agent/stream` with a canned simulation fallback.
 - **Phase 8**: Brand-styled `/app` paste flow. Both "Open Babel" CTAs on the landing deep-link to `/app`, where users type any non-English article and watch the real pipeline stream all seven steps with live SSE.
 - **Phase 9**: Full brand reskin across every route. The `(marketing)` route group is dissolved; `.brand-shell` and brand.css apply globally from the root layout. Dashboard, market view, sign-in, sign-up, geo-gate, and setup-wallet all rewrite their markup in brand selectors (parchment palette, Anton + Cormorant + JetBrains type). No shadcn primitives on user-facing pages. The agent pipeline, Nanopayments, escrow, sweep, claim flow, Supabase queries, and every API route are byte-for-byte unchanged from Phase 6/7/8.
+- **Phase 12**: Real-USYC integration scaffolded. `lib/circle/usyc-client.ts` calls Circle's USYC sandbox REST API when `USYC_API_KEY` is set; otherwise the existing deterministic stub runs. Dashboard badge flips from "sandbox pending" to "sandbox live" based on `NEXT_PUBLIC_USYC_LIVE=1`. Wiring is ready the day Circle delivers the hackathon sandbox key.
 
 ## Route map
 

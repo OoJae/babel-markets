@@ -1,20 +1,31 @@
-// USYC Teller integration, testnet structural stub.
+// USYC Teller integration.
 //
 // COMPLIANCE GUARDRAIL: USYC is non-US-only and wallets must be KYC allow-listed.
 // Babel demonstrates the integration on testnet only and does NOT park real user
 // funds. The README, dashboard tile, and compliance banner all repeat this.
 //
-// We intentionally do NOT call the real Teller (https://developers.circle.com/
-// tokenized/usyc/subscribe-and-redeem) here. This module returns deterministic
-// mock receipts and writes a row to the `usyc_events` table so the dashboard
-// can render a non-zero float and history.
+// Two execution paths, gated by USYC_API_KEY in env:
+//   - sandbox live: call Circle's USYC sandbox REST API via usyc-client.ts.
+//     Activated when USYC_API_KEY is set (Joseph receives this from the
+//     Circle Hackathon Access Form).
+//   - stub: deterministic mock receipts so the dashboard tile + history
+//     table render meaningful numbers even before sandbox credentials
+//     arrive. Same persistence path; the only difference is that txHash is
+//     a fake hex string and the price-per-share is hardcoded.
 
 import { getSupabaseServiceClient } from "@/lib/supabase/service-client";
 import { randomBytes } from "node:crypto";
+import {
+  isUsycLive,
+  usycBalanceLive,
+  usycRedeemLive,
+  usycSubscribeLive,
+} from "@/lib/circle/usyc-client";
 
 export interface USYCSubscribeParams {
   amountUsdc: string;
   profileId?: string;
+  walletAddress?: string;
 }
 
 export interface USYCReceipt {
@@ -25,8 +36,8 @@ export interface USYCReceipt {
   action: "subscribe" | "redeem";
 }
 
-// Stable demo numbers: 0.20% spread vs USDC, 4.8% APY narrative.
-const PRICE_PER_SHARE = "1.002000";
+// Stable demo numbers for the stub path: 0.20% spread vs USDC, 4.8% APY narrative.
+const STUB_PRICE_PER_SHARE = "1.002000";
 const APY = "4.8%";
 const USYC_PER_USDC = 1 / 1.002;
 
@@ -45,14 +56,35 @@ export async function subscribeToUsyc(
   if (!Number.isFinite(amount) || amount <= 0) {
     throw new Error("amountUsdc must be a positive number");
   }
-  const amountUsyc = (amount * USYC_PER_USDC).toFixed(6);
-  const receipt: USYCReceipt = {
-    txHash: fakeTxHash(),
-    amountUsdc: amount.toFixed(6),
-    amountUsyc,
-    pricePerShare: PRICE_PER_SHARE,
-    action: "subscribe",
-  };
+
+  let receipt: USYCReceipt;
+  if (isUsycLive()) {
+    if (!params.walletAddress) {
+      throw new Error(
+        "USYC sandbox mode requires a wallet address. Set up your passkey wallet first.",
+      );
+    }
+    const live = await usycSubscribeLive({
+      amountUsdc: amount.toFixed(6),
+      walletAddress: params.walletAddress,
+    });
+    receipt = {
+      txHash: live.txHash || fakeTxHash(),
+      amountUsdc: amount.toFixed(6),
+      amountUsyc: Number(live.sharesIssued || 0).toFixed(6),
+      pricePerShare: live.pricePerShare || STUB_PRICE_PER_SHARE,
+      action: "subscribe",
+    };
+  } else {
+    const amountUsyc = (amount * USYC_PER_USDC).toFixed(6);
+    receipt = {
+      txHash: fakeTxHash(),
+      amountUsdc: amount.toFixed(6),
+      amountUsyc,
+      pricePerShare: STUB_PRICE_PER_SHARE,
+      action: "subscribe",
+    };
+  }
   await persist(receipt, params.profileId);
   return receipt;
 }
@@ -64,14 +96,35 @@ export async function redeemUsyc(
   if (!Number.isFinite(amount) || amount <= 0) {
     throw new Error("amountUsdc must be a positive number");
   }
-  const amountUsyc = (amount * USYC_PER_USDC).toFixed(6);
-  const receipt: USYCReceipt = {
-    txHash: fakeTxHash(),
-    amountUsdc: amount.toFixed(6),
-    amountUsyc,
-    pricePerShare: PRICE_PER_SHARE,
-    action: "redeem",
-  };
+
+  let receipt: USYCReceipt;
+  if (isUsycLive()) {
+    if (!params.walletAddress) {
+      throw new Error(
+        "USYC sandbox mode requires a wallet address. Set up your passkey wallet first.",
+      );
+    }
+    const live = await usycRedeemLive({
+      amountUsdc: amount.toFixed(6),
+      walletAddress: params.walletAddress,
+    });
+    receipt = {
+      txHash: live.txHash || fakeTxHash(),
+      amountUsdc: amount.toFixed(6),
+      amountUsyc: Number(live.sharesIssued || 0).toFixed(6),
+      pricePerShare: live.pricePerShare || STUB_PRICE_PER_SHARE,
+      action: "redeem",
+    };
+  } else {
+    const amountUsyc = (amount * USYC_PER_USDC).toFixed(6);
+    receipt = {
+      txHash: fakeTxHash(),
+      amountUsdc: amount.toFixed(6),
+      amountUsyc,
+      pricePerShare: STUB_PRICE_PER_SHARE,
+      action: "redeem",
+    };
+  }
   await persist(receipt, params.profileId);
   return receipt;
 }
@@ -98,7 +151,12 @@ export interface UsycFloat {
   netFloatUsdc: number;
 }
 
-export async function getUserUsycFloat(profileId: string): Promise<UsycFloat> {
+export async function getUserUsycFloat(
+  profileId: string,
+  walletAddress?: string | null,
+): Promise<UsycFloat> {
+  // Walk the local event log first; this is the authoritative subscribe /
+  // redeem history Babel keeps regardless of which path executed.
   const service = getSupabaseServiceClient();
   const { data } = await service
     .from("usyc_events")
@@ -122,9 +180,31 @@ export async function getUserUsycFloat(profileId: string): Promise<UsycFloat> {
       usycHeld -= s;
     }
   }
+
+  let pricePerShare = Number(STUB_PRICE_PER_SHARE);
+
+  // In sandbox-live mode, reconcile shares + price-per-share against Circle's
+  // canonical balance endpoint when a wallet address is known. The event log
+  // remains the source of truth for usdcIn (subscribe minus redeem); shares
+  // come from the API; netFloatUsdc uses the API price.
+  if (isUsycLive() && walletAddress) {
+    try {
+      const live = await usycBalanceLive(walletAddress);
+      const apiShares = Number(live.shares ?? 0);
+      const apiPps = Number(live.pricePerShare ?? STUB_PRICE_PER_SHARE);
+      if (Number.isFinite(apiShares)) usycHeld = apiShares;
+      if (Number.isFinite(apiPps) && apiPps > 0) pricePerShare = apiPps;
+    } catch (e) {
+      console.warn(
+        "[usyc] balance fetch failed, falling back to event log:",
+        e instanceof Error ? e.message : e,
+      );
+    }
+  }
+
   return {
     totalUsdcSubscribed: usdcIn,
     totalUsycHeld: usycHeld,
-    netFloatUsdc: usycHeld * Number(PRICE_PER_SHARE),
+    netFloatUsdc: usycHeld * pricePerShare,
   };
 }

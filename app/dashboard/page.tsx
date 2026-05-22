@@ -106,7 +106,7 @@ export default async function DashboardPage() {
   const username =
     profile?.name ?? profile?.email ?? user.email ?? `babel-${user.id.slice(0, 8)}`;
 
-  const usycFloat = await getUserUsycFloat(user.id);
+  const usycFloat = await getUserUsycFloat(user.id, arcWallet ?? null);
 
   const credits: CreditRow[] = (creditsRaw ?? []).map((c) => {
     const row = c as {

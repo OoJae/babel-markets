@@ -1,11 +1,15 @@
 "use client";
 
-// USYC float tile, testnet stub only. Calls /api/usyc/subscribe which writes a
-// usyc_events row and returns the running float; no real Teller is touched.
-// Brand markup; the API call shape is unchanged from Phase 5/6.
+// USYC float tile. Calls /api/usyc/subscribe which branches between Circle's
+// sandbox REST API (when USYC_API_KEY is set on the server) and the local
+// deterministic stub. The NEXT_PUBLIC_USYC_LIVE flag mirrors the server-side
+// USYC_API_KEY so the badge can flip without a code change once Circle
+// delivers the hackathon sandbox key.
 
 import { useState } from "react";
 import { toast } from "sonner";
+
+const USYC_LIVE = process.env.NEXT_PUBLIC_USYC_LIVE === "1";
 
 interface FloatState {
   totalUsdcSubscribed: number;
@@ -35,10 +39,11 @@ export function UsycPanel({ initial }: { initial: FloatState }) {
         toast.error(msg);
       } else {
         setFloatState(json.float as FloatState);
+        const tag = USYC_LIVE ? "(sandbox live)" : "(sandbox pending)";
         toast.success(
           action === "subscribe"
-            ? `Subscribed $${amount} into USYC (testnet stub)`
-            : `Redeemed $${amount} from USYC (testnet stub)`,
+            ? `Subscribed $${amount} into USYC ${tag}`
+            : `Redeemed $${amount} from USYC ${tag}`,
         );
       }
     } catch (e) {
@@ -53,7 +58,30 @@ export function UsycPanel({ initial }: { initial: FloatState }) {
       <div className="row">
         <span className="amt">${floatState.netFloatUsdc.toFixed(4)}</span>
         <span className="pill">4.8% APY</span>
-        <span className="pill warn">testnet stub</span>
+        {USYC_LIVE ? (
+          <span
+            className="pill"
+            style={{
+              background: "#2f6f3c",
+              color: "var(--parchment)",
+              borderColor: "#2f6f3c",
+            }}
+            title="Subscribe + redeem call Circle's USYC sandbox API."
+          >
+            sandbox live
+          </span>
+        ) : (
+          <a
+            href="https://forms.gle/usyc-stablefx-hackathon-access"
+            target="_blank"
+            rel="noreferrer"
+            className="pill warn"
+            style={{ textDecoration: "none" }}
+            title="Subscribe + redeem use a deterministic stub until Circle issues the hackathon sandbox key."
+          >
+            sandbox pending
+          </a>
+        )}
       </div>
       <div className="meta">
         {floatState.totalUsycHeld.toFixed(4)} USYC at $1.0020 / share
