@@ -6,13 +6,17 @@
 // agent EOA sign + settle a Nanopayment to a designated recipient, and the
 // receipt streams to the paste box.
 //
-// Protocol:
-//   1. POST without X-PAYMENT: respond 402 with the x402 accepts body that
-//      tells the buyer how to construct the payment (network, USDC asset,
-//      amount, payTo, GatewayWallet verifyingContract).
-//   2. POST with X-PAYMENT (base64 of a JSON PaymentPayload): verify+settle
-//      via Circle's BatchFacilitatorClient, then return 200 with the
-//      settlement details and a base64-encoded X-PAYMENT-RESPONSE header.
+// Protocol (matches the buyer SDK's expectations exactly):
+//   1. POST without `payment-signature` header: respond 402 with a
+//      `PAYMENT-REQUIRED` header carrying base64(JSON.stringify({
+//          x402Version: 2,
+//          resource: { url, description, mimeType: "application/json" },
+//          accepts: [paymentRequirements]
+//      })). The body is `{}`. The buyer SDK reads the header, not the body.
+//   2. POST with `payment-signature` header (base64 of a JSON PaymentPayload):
+//      verify + settle via Circle's BatchFacilitatorClient, then return 200
+//      with the settlement details and a base64-encoded `PAYMENT-RESPONSE`
+//      header.
 
 import { NextRequest } from "next/server";
 import {
@@ -30,8 +34,16 @@ export const maxDuration = 30;
 // well-known value here so the seller doesn't need the buyer key.
 const ARC_GATEWAY_WALLET = "0x0077777d7EBA4688BDeF3E311b846F25870A19B9";
 
-// Arc testnet domain id from CAIP-2: eip155:5042002.
+// Arc testnet CAIP-2 network id: eip155:5042002.
 const ARC_TESTNET_CAIP = "eip155:5042002";
+
+// Constants from the SDK's CIRCLE_BATCHING_NAME / CIRCLE_BATCHING_VERSION /
+// GATEWAY_AUTH_VALIDITY_WINDOW_SECONDS. Mirrored here so the seller does not
+// have to import client-only symbols.
+const CIRCLE_BATCHING_NAME = "GatewayWalletBatched";
+const CIRCLE_BATCHING_VERSION = "1";
+// 7 days plus a 100s buffer, matching GATEWAY_MIN_AUTH_VALIDITY_SECONDS + buffer.
+const GATEWAY_AUTH_VALIDITY_WINDOW_SECONDS = 7 * 24 * 60 * 60 + 100;
 
 function getSellerAddress(): string {
   const seller = process.env.NANOPAYMENT_SELLER_ADDRESS;
@@ -52,25 +64,33 @@ function paymentRequirements() {
     asset: ARC_CONTRACTS.USDC,
     amount: getPriceAtomicUsdc(),
     payTo: getSellerAddress(),
-    maxTimeoutSeconds: 60 * 60 * 24 * 7,
+    maxTimeoutSeconds: GATEWAY_AUTH_VALIDITY_WINDOW_SECONDS,
     description: "Babel Markets agent inference Nanopayment",
     extra: {
-      name: "GatewayWalletBatched",
-      version: "1",
+      name: CIRCLE_BATCHING_NAME,
+      version: CIRCLE_BATCHING_VERSION,
       verifyingContract: ARC_GATEWAY_WALLET,
     },
   };
 }
 
-function fourOhTwo(): Response {
-  const body = {
-    x402Version: 1,
-    error: "X-PAYMENT header required",
+function fourOhTwo(req: NextRequest): Response {
+  const paymentRequired = {
+    x402Version: 2,
+    resource: {
+      url: req.nextUrl.pathname,
+      description: "Babel Markets agent inference Nanopayment",
+      mimeType: "application/json",
+    },
     accepts: [paymentRequirements()],
   };
-  return new Response(JSON.stringify(body), {
+  const header = Buffer.from(JSON.stringify(paymentRequired)).toString("base64");
+  return new Response(JSON.stringify({}), {
     status: 402,
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "PAYMENT-REQUIRED": header,
+    },
   });
 }
 
@@ -85,17 +105,22 @@ function decodePaymentHeader(header: string): any {
 export async function POST(req: NextRequest) {
   const facilitatorUrl =
     process.env.NANOPAYMENT_FACILITATOR_URL || GATEWAY_FACILITATOR_URLS.testnet;
+
+  // SDK sends the signed payment payload in the `payment-signature` header
+  // (the Circle middleware reads it case-insensitively from req.headers).
   const paymentHeader =
-    req.headers.get("x-payment") ?? req.headers.get("X-PAYMENT");
+    req.headers.get("payment-signature") ??
+    req.headers.get("Payment-Signature") ??
+    req.headers.get("x-payment");
 
   if (!paymentHeader) {
-    return fourOhTwo();
+    return fourOhTwo(req);
   }
 
   const payload = decodePaymentHeader(paymentHeader);
   if (!payload) {
     return new Response(
-      JSON.stringify({ x402Version: 1, error: "Malformed X-PAYMENT header" }),
+      JSON.stringify({ error: "Malformed payment-signature header" }),
       { status: 400, headers: { "content-type": "application/json" } },
     );
   }
@@ -105,10 +130,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const settle = await facilitator.settle(payload as any, requirements as any);
+    const settleAny = settle as any;
     const responsePayload = {
-      success: (settle as any).success ?? true,
-      transaction: (settle as any).transaction ?? null,
-      payer: (settle as any).payer ?? null,
+      success: settleAny.success ?? true,
+      transaction: settleAny.transaction ?? null,
+      payer: settleAny.payer ?? null,
       network: requirements.network,
       amount: requirements.amount,
     };
@@ -125,19 +151,15 @@ export async function POST(req: NextRequest) {
         status: 200,
         headers: {
           "content-type": "application/json",
-          "x-payment-response": responseHeader,
+          "PAYMENT-RESPONSE": responseHeader,
         },
       },
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "settle failed";
-    return new Response(
-      JSON.stringify({
-        x402Version: 1,
-        error: msg.slice(0, 200),
-        accepts: [requirements],
-      }),
-      { status: 402, headers: { "content-type": "application/json" } },
-    );
+    console.warn("[babel-nanopay] settle failed:", msg.slice(0, 200));
+    // Return a fresh 402 so the buyer SDK can retry with a new signature if
+    // the previous one expired or was already used.
+    return fourOhTwo(req);
   }
 }
