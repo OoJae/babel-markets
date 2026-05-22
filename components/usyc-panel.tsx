@@ -4,6 +4,7 @@
 // usyc_events row and returns the running float; no real Teller is touched.
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -30,9 +31,16 @@ export function UsycPanel({ initial }: { initial: FloatState }) {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        setError(json.error || `USYC ${action} failed`);
+        const msg = json.error || `USYC ${action} failed`;
+        setError(msg);
+        toast.error(msg);
       } else {
         setFloatState(json.float as FloatState);
+        toast.success(
+          action === "subscribe"
+            ? `Subscribed $${amount} into USYC (testnet stub)`
+            : `Redeemed $${amount} from USYC (testnet stub)`,
+        );
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "USYC call failed");
@@ -62,14 +70,16 @@ export function UsycPanel({ initial }: { initial: FloatState }) {
         <Button size="sm" onClick={() => act("subscribe")} disabled={busy !== null}>
           {busy === "subscribe" ? "Subscribing..." : "Subscribe"}
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => act("redeem")}
-          disabled={busy !== null || floatState.totalUsycHeld <= 0}
-        >
-          {busy === "redeem" ? "Redeeming..." : "Redeem"}
-        </Button>
+        {floatState.totalUsycHeld > 0 && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => act("redeem")}
+            disabled={busy !== null}
+          >
+            {busy === "redeem" ? "Redeeming..." : "Redeem"}
+          </Button>
+        )}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <p className="text-xs text-muted-foreground">

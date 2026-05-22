@@ -10,6 +10,7 @@ import {
   formatUnits,
   keccak256,
   toHex,
+  encodeFunctionData,
   type Hex,
   type Address,
 } from "viem";
@@ -203,4 +204,20 @@ export function claimPayoutCalldata() {
     abi: ESCROW_ABI,
     functionName: "claim" as const,
   };
+}
+
+// Encoded `claim()` calldata for sendUserOperation. The Modular Wallet bundler
+// wants `data: Hex`, not an ABI + functionName, so we encode here. The escrow
+// address is bundled with it so the caller does not have to read the env again.
+export function encodeClaimCalldata(): { to: Address; data: Hex } {
+  const address = getEscrowAddress();
+  if (!address) throw new Error("ATTRIBUTION_ESCROW_ADDRESS not set");
+  return {
+    to: address,
+    data: encodeFunctionData({ abi: ESCROW_ABI, functionName: "claim", args: [] }),
+  };
+}
+
+export function getPublicEscrowAddress(): Address | null {
+  return getEscrowAddress();
 }

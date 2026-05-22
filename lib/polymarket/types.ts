@@ -48,6 +48,13 @@ export interface GammaMarket {
   clobTokenIds: string[];
   // Direct trading URL on polymarket.com.
   url: string;
+  // Optional live numbers from Gamma. Not all markets carry them; absent fields
+  // mean "Gamma did not return a value" not "value is zero".
+  volume?: number;
+  liquidity?: number;
+  bestBid?: number;
+  bestAsk?: number;
+  lastTradePrice?: number;
 }
 
 export interface MarketMatch {

@@ -26,6 +26,12 @@ function parseNumberList(raw: unknown): number[] {
   return strs.map((s) => Number(s)).filter((n) => Number.isFinite(n));
 }
 
+function asOptionalNumber(raw: unknown): number | undefined {
+  if (raw === null || raw === undefined || raw === "") return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 function normalize(raw: any): GammaMarket {
   const slug = String(raw.slug ?? raw.market_slug ?? "");
   return {
@@ -42,6 +48,11 @@ function normalize(raw: any): GammaMarket {
     outcomePrices: parseNumberList(raw.outcomePrices ?? raw.outcome_prices),
     clobTokenIds: parseStringList(raw.clobTokenIds ?? raw.clob_token_ids),
     url: slug ? `https://polymarket.com/event/${slug}` : "https://polymarket.com/",
+    volume: asOptionalNumber(raw.volume ?? raw.volumeNum ?? raw.volume_num),
+    liquidity: asOptionalNumber(raw.liquidity ?? raw.liquidityNum ?? raw.liquidity_num),
+    bestBid: asOptionalNumber(raw.bestBid ?? raw.best_bid),
+    bestAsk: asOptionalNumber(raw.bestAsk ?? raw.best_ask),
+    lastTradePrice: asOptionalNumber(raw.lastTradePrice ?? raw.last_trade_price),
   };
 }
 

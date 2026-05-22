@@ -6,8 +6,11 @@
 // burning testnet USDC.
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
+const MIN_SWEEP_USDC = 0.1;
 
 interface SweepEvent {
   stage: "burn-pending" | "burn-confirmed" | "attestation-fetched" | "mint-confirmed";
@@ -92,8 +95,32 @@ export function SweepPanel({ accrued }: { accrued: number }) {
           const payload = JSON.parse(dataMatch[1]);
           if (evType === "init") setInit(payload as InitEvent);
           else if (evType === "progress") setEvents((p) => [...p, payload as SweepEvent]);
-          else if (evType === "done") setDone(payload as DoneEvent);
-          else if (evType === "error") setError((payload as { error: string }).error);
+          else if (evType === "done") {
+            const d = payload as DoneEvent;
+            setDone(d);
+            if (d.result) {
+              toast.success(
+                `Swept ${d.result.amountUsdc} USDC to Arc${d.mock ? " (mock)" : ""}`,
+                d.mock
+                  ? undefined
+                  : {
+                      description: d.result.mintTxHash.slice(0, 18) + "...",
+                      action: {
+                        label: "ArcScan",
+                        onClick: () =>
+                          window.open(
+                            `https://testnet.arcscan.app/tx/${d.result!.mintTxHash}`,
+                            "_blank",
+                          ),
+                      },
+                    },
+              );
+            }
+          } else if (evType === "error") {
+            const msg = (payload as { error: string }).error;
+            setError(msg);
+            toast.error(msg);
+          }
         }
       }
     } catch (e) {
@@ -123,10 +150,24 @@ export function SweepPanel({ accrued }: { accrued: number }) {
           disabled={running}
           className="w-28 rounded border bg-background px-2 py-1 text-sm font-mono"
         />
-        <Button onClick={startSweep} disabled={running} size="sm">
+        <Button
+          onClick={startSweep}
+          disabled={running || Number(amount) < MIN_SWEEP_USDC}
+          size="sm"
+          title={
+            Number(amount) < MIN_SWEEP_USDC
+              ? `CCTP v2 minimum sweep is ${MIN_SWEEP_USDC} USDC`
+              : undefined
+          }
+        >
           {running ? "Sweeping..." : "Sweep to Arc"}
         </Button>
       </div>
+      {!running && Number(amount) < MIN_SWEEP_USDC && (
+        <p className="text-xs text-muted-foreground">
+          CCTP v2 minimum sweep is {MIN_SWEEP_USDC} USDC.
+        </p>
+      )}
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}

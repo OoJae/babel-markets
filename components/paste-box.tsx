@@ -6,10 +6,16 @@
 // economics in real time.
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+
+export interface PasteSample {
+  label: string;
+  text: string;
+}
 
 interface StepEvent {
   step: string;
@@ -63,7 +69,20 @@ interface DoneEvent {
   totalLatencyMs: number;
 }
 
-const SAMPLE_TEXT = `Ijoba apapo ti Naijiria so wipe oun yoo gbero lori ipinnu lati yo idiyele owo epo petirolu sile ki o to di ojo kerinla osu Keje 2026. Aare Bola Tinubu so fun awon onise iroyin ni ile Aso Rock pe ipinnu yi yoo da lori bi inawo ijoba se ri.`;
+const DEFAULT_SAMPLES: PasteSample[] = [
+  {
+    label: "Yoruba",
+    text: `Ijoba apapo ti Naijiria so wipe oun yoo gbero lori ipinnu lati yo idiyele owo epo petirolu sile ki o to di ojo kerinla osu Keje 2026. Aare Bola Tinubu so fun awon onise iroyin ni ile Aso Rock pe ipinnu yi yoo da lori bi inawo ijoba se ri.`,
+  },
+  {
+    label: "French",
+    text: `Paris a confirmé officiellement sa candidature pour accueillir les finales des championnats du monde d'athlétisme en 2027. Le maire Anne Hidalgo a déclaré mercredi que la décision finale du Comité international d'athlétisme sera annoncée le 12 mars 2026.`,
+  },
+  {
+    label: "Mandarin",
+    text: `中国国务院总理李强本周宣布,政府计划在2026年第三季度之前推出新的人民币数字货币跨境支付试点项目,初期将覆盖上海、深圳和香港。央行表示,试点的成功标准将在2026年6月30日前公布。`,
+  },
+];
 
 const STEP_LABEL: Record<string, string> = {
   detect: "1. Detect language",
@@ -78,8 +97,16 @@ const STEP_LABEL: Record<string, string> = {
   decide: "7. Post or hold",
 };
 
-export function PasteBox() {
-  const [text, setText] = useState("");
+interface PasteBoxProps {
+  initialText?: string;
+  samples?: PasteSample[];
+}
+
+export function PasteBox({
+  initialText = "",
+  samples = DEFAULT_SAMPLES,
+}: PasteBoxProps = {}) {
+  const [text, setText] = useState(initialText);
   const [streaming, setStreaming] = useState(false);
   const [steps, setSteps] = useState<StepEvent[]>([]);
   const [done, setDone] = useState<DoneEvent | null>(null);
@@ -154,9 +181,25 @@ export function PasteBox() {
           if (eventName === "step") {
             setSteps((prev) => [...prev, payload as StepEvent]);
           } else if (eventName === "done") {
-            setDone(payload as DoneEvent);
+            const d = payload as DoneEvent;
+            setDone(d);
+            if (d.question?.reject) {
+              toast.warning("Question held back: not tradable.");
+            } else if (d.shouldPost) {
+              toast.success(
+                `Synthesized: ${d.question.question.slice(0, 60)}`,
+                {
+                  description: d.matchedMarket
+                    ? "Matched a live Polymarket market."
+                    : "Saved as draft.",
+                },
+              );
+            } else {
+              toast("Synthesized, holding for review.");
+            }
           } else if (eventName === "error") {
             setError(payload.error ?? "Pipeline failed");
+            toast.error(payload.error ?? "Pipeline failed");
           }
         }
       }
@@ -201,13 +244,16 @@ export function PasteBox() {
             <Button onClick={submit} disabled={streaming || !text.trim()}>
               {streaming ? "Streaming..." : "Synthesize question"}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setText(SAMPLE_TEXT)}
-              disabled={streaming}
-            >
-              Try a sample (Yoruba)
-            </Button>
+            {samples.map((s) => (
+              <Button
+                key={s.label}
+                variant="outline"
+                onClick={() => setText(s.text)}
+                disabled={streaming}
+              >
+                Try {s.label}
+              </Button>
+            ))}
             {streaming && (
               <Button variant="ghost" onClick={cancel}>
                 Cancel
@@ -221,6 +267,13 @@ export function PasteBox() {
           </div>
         </CardContent>
       </Card>
+
+      {!streaming && steps.length === 0 && !done && !error && text.trim().length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          Steps appear here as the agent runs. Each one ships with a USDC cost
+          and a Gateway Nanopayment receipt.
+        </p>
+      )}
 
       {(steps.length > 0 || done) && (
         <div className="space-y-3">
