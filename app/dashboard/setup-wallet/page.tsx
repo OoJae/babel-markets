@@ -10,7 +10,16 @@ export default async function SetupWalletPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  const username = user.user_metadata?.full_name || user.email || "babel-user";
+  // Circle Modular Wallets enforces global uniqueness per project for the
+  // passkey username. We use a stable per-user UUID-derived value so retries
+  // and re-tests never collide. UUIDs are 36 chars with hyphens, so `babel-`
+  // prefix lands at 42 chars (well within Circle's 5-50 range) and uses only
+  // hex + hyphen which Circle allows.
+  const username = `babel-${user.id}`;
+  const displayName =
+    (user.user_metadata?.full_name as string | undefined) ||
+    user.email ||
+    "Babel creator";
 
   return (
     <main className="auth-page">
@@ -25,7 +34,7 @@ export default async function SetupWalletPage() {
         <Link href="/dashboard">Dashboard ↗</Link>
       </header>
       <section className="auth-main">
-        <PasskeySetup username={username} />
+        <PasskeySetup username={username} displayName={displayName} />
       </section>
     </main>
   );

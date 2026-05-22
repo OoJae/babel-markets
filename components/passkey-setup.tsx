@@ -24,10 +24,15 @@ import {
 import { arcTestnet } from "@/lib/chain/arc";
 
 interface Props {
+  // Uniquely identifies the user inside Circle's project (we derive
+  // `babel-${user.id}`). Never collides across signups, never shown to the user.
   username: string;
+  // Optional human-readable name for greeting copy on the card. Defaults to
+  // "creator" if absent.
+  displayName?: string;
 }
 
-export function PasskeySetup({ username }: Props) {
+export function PasskeySetup({ username, displayName }: Props) {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -86,10 +91,11 @@ export function PasskeySetup({ username }: Props) {
     }
   }
 
+  const greeting = displayName ? `, ${displayName.split(/[@\s]/)[0]}` : "";
   return (
     <div className="auth-card passkey-card">
       <h1>
-        Set up <em>your wallet.</em>
+        Set up <em>your wallet{greeting}.</em>
       </h1>
       <p className="copy">
         Babel uses a Circle Modular Smart Account secured by a passkey. Authenticate

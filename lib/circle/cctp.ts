@@ -13,6 +13,7 @@ import {
   createWalletClient,
   http,
   parseUnits,
+  formatUnits,
   pad,
   type Hex,
   type Address,
@@ -99,6 +100,13 @@ const ERC20_ABI = [
       { name: "owner", type: "address" },
       { name: "spender", type: "address" },
     ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }],
     outputs: [{ type: "uint256" }],
   },
 ] as const;
@@ -189,6 +197,30 @@ export async function burnOnPolygon(
 
   const usdc = CCTP_TESTNET_USDC.POLYGON_AMOY;
   const messenger = CCTP_V2_TESTNET.TOKEN_MESSENGER;
+  const requiredSubunits = amountSubunits + DEFAULT_MAX_FEE_SUBUNITS;
+
+  // Pre-flight balance check. depositForBurn reverts internally if the
+  // sender does not hold enough USDC to cover amount + maxFee, but the raw
+  // viem error ("execution reverted") is unhelpful. Surface a clear
+  // instruction so the operator knows to fund the agent EOA from the
+  // Circle Polygon Amoy faucet.
+  const balance = (await publicClient.readContract({
+    address: usdc,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: [account.address],
+  })) as bigint;
+  if (balance < requiredSubunits) {
+    const have = formatUnits(balance, 6);
+    const need = formatUnits(requiredSubunits, 6);
+    throw new Error(
+      `Agent EOA ${account.address} has only ${have} USDC on Polygon Amoy ` +
+        `(needs ${need} for amount + max fee). ` +
+        `Fund it at https://faucet.circle.com (select Polygon Amoy) and ` +
+        `claim a small amount of MATIC at https://faucet.polygon.technology, then retry. ` +
+        `Or set BABEL_CCTP_ENABLED=0 in Vercel env to run sweeps in mock mode.`,
+    );
+  }
 
   const allowance = (await publicClient.readContract({
     address: usdc,
@@ -197,12 +229,12 @@ export async function burnOnPolygon(
     args: [account.address, messenger],
   })) as bigint;
 
-  if (allowance < amountSubunits + DEFAULT_MAX_FEE_SUBUNITS) {
+  if (allowance < requiredSubunits) {
     const approveTx = await walletClient.writeContract({
       address: usdc,
       abi: ERC20_ABI,
       functionName: "approve",
-      args: [messenger, amountSubunits + DEFAULT_MAX_FEE_SUBUNITS],
+      args: [messenger, requiredSubunits],
     });
     await publicClient.waitForTransactionReceipt({ hash: approveTx });
   }
