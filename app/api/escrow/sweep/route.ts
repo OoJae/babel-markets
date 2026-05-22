@@ -15,7 +15,12 @@ import {
 } from "@/lib/circle/cctp";
 
 export const runtime = "nodejs";
-export const maxDuration = 900;
+// Vercel Hobby caps Serverless Functions at 300s. The mock sweep finishes in
+// ~2.5s; a real CCTP sweep usually completes in 30-90s on Arc testnet but can
+// stretch to several minutes on a slow attestation. If we hit the cap, the
+// `sweeps` row stays in `pending` and a follow-up poller (TODO post-hackathon)
+// can finish the mint.
+export const maxDuration = 300;
 
 const InputSchema = z.object({
   amountUsdc: z

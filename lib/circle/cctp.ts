@@ -44,9 +44,10 @@ const MIN_FINALITY_THRESHOLD_FAST = 1000;
 const DEFAULT_MAX_FEE_SUBUNITS = 500n;
 
 // Attestation polling settings. Iris v2 typically completes within 30-90s on
-// fast transfer; we cap at 10 min before erroring out.
+// fast transfer. Vercel Hobby caps the calling route at 300s total, so we
+// budget ~240s for the attestation and leave headroom for the burn + mint txs.
 const ATTESTATION_POLL_BACKOFFS_MS = [3_000, 5_000, 8_000, 13_000, 21_000, 34_000, 55_000, 90_000];
-const ATTESTATION_MAX_TOTAL_MS = 10 * 60 * 1000;
+const ATTESTATION_MAX_TOTAL_MS = 4 * 60 * 1000;
 
 const TOKEN_MESSENGER_ABI = [
   {
