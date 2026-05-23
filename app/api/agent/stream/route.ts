@@ -151,9 +151,49 @@ export async function POST(req: NextRequest) {
           console.warn("[stream] questions insert failed:", qerr);
         }
 
+        // Pin the reasoning trace to IPFS *before* closing the stream. Doing
+        // this inline (instead of fire-and-forget) guarantees the CID lands on
+        // the questions row even on Vercel, which terminates background
+        // promises once the response stream closes. A 20s hard cap protects
+        // the stream from a stalled Irys upload; on timeout we fall back to
+        // ipfsCid=null and the market view's existing "being pinned" placeholder.
+        let ipfsCid: string | null = null;
+        if (questionId) {
+          const tracePayload = {
+            babel_version: "phase-3",
+            submission_id: submissionId,
+            question_id: questionId,
+            steps: result.steps,
+            question: result.question,
+            quality: result.quality,
+            rationale: result.rationale,
+            matched_market: result.matchedMarket ?? null,
+            generated_at: new Date().toISOString(),
+          };
+          try {
+            ipfsCid = await Promise.race([
+              pinReasoningTrace(tracePayload),
+              new Promise<string>((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("IPFS pin timed out after 20s")),
+                  20_000,
+                ),
+              ),
+            ]);
+            await service
+              .from("questions")
+              .update({ ipfs_cid: ipfsCid })
+              .eq("id", questionId);
+          } catch (err) {
+            console.warn("[stream] IPFS pin failed:", err);
+            ipfsCid = null;
+          }
+        }
+
         controller.enqueue(
           sseEncode("done", {
             questionId,
+            ipfsCid,
             question: result.question,
             quality: result.quality,
             qualityAverage: result.qualityAverage,
@@ -201,32 +241,6 @@ export async function POST(req: NextRequest) {
               );
             }
           })();
-        }
-
-        // Fire-and-forget IPFS pin so the stream can close before the upload
-        // finishes. The CID lands on the questions row asynchronously.
-        if (questionId) {
-          const tracePayload = {
-            babel_version: "phase-3",
-            submission_id: submissionId,
-            question_id: questionId,
-            steps: result.steps,
-            question: result.question,
-            quality: result.quality,
-            rationale: result.rationale,
-            matched_market: result.matchedMarket ?? null,
-            generated_at: new Date().toISOString(),
-          };
-          pinReasoningTrace(tracePayload)
-            .then(async (cid) => {
-              await service
-                .from("questions")
-                .update({ ipfs_cid: cid })
-                .eq("id", questionId);
-            })
-            .catch((err) => {
-              console.warn("[stream] IPFS pin failed:", err);
-            });
         }
       } catch (err) {
         controller.enqueue(
