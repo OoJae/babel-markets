@@ -47,7 +47,7 @@ export function Footer() {
         </div>
         <div className="foot-col">
           <h4>Community</h4>
-          <a href="https://twitter.com/OoJae" target="_blank" rel="noreferrer">
+          <a href="https://x.com/babelmarkets" target="_blank" rel="noreferrer">
             Twitter / X
           </a>
           <a href="#">Canteen Discord</a>
