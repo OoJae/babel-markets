@@ -10,6 +10,7 @@
 // selectors defined in app/brand.css.
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const MIN_SWEEP_USDC = 0.1;
@@ -22,6 +23,12 @@ interface SweepEvent {
   note?: string;
 }
 
+interface CreditState {
+  status: "pending" | "confirmed" | "skipped";
+  txHash?: string;
+  reason?: string;
+}
+
 interface DoneEvent {
   sweepId: string;
   mock: boolean;
@@ -31,6 +38,7 @@ interface DoneEvent {
     attestationStatus: string;
     amountUsdc: string;
   } | null;
+  creditTxHash: string | null;
 }
 
 function polygonscan(hash: string): string {
@@ -56,17 +64,20 @@ const STAGE_NOTE: Record<SweepEvent["stage"], string> = {
 };
 
 export function SweepPanel({ accrued }: { accrued: number }) {
+  const router = useRouter();
   const [running, setRunning] = useState(false);
   const [amount, setAmount] = useState("0.1");
   // The init event from /api/escrow/sweep is still received; we just don't
   // need to surface it in the UI now that the "demo mode" chip is gone.
   const [events, setEvents] = useState<SweepEvent[]>([]);
+  const [credit, setCredit] = useState<CreditState | null>(null);
   const [done, setDone] = useState<DoneEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function startSweep() {
     setRunning(true);
     setEvents([]);
+    setCredit(null);
     setDone(null);
     setError(null);
     try {
@@ -99,7 +110,15 @@ export function SweepPanel({ accrued }: { accrued: number }) {
           if (evType === "init") {
             // sweepId / mock flag arrive here but we no longer render either.
           } else if (evType === "progress") setEvents((p) => [...p, payload as SweepEvent]);
-          else if (evType === "done") {
+          else if (evType === "credit-pending") {
+            setCredit({ status: "pending" });
+          } else if (evType === "credit-confirmed") {
+            const p = payload as { creditTxHash: string; amountUsdc: string };
+            setCredit({ status: "confirmed", txHash: p.creditTxHash });
+          } else if (evType === "credit-skipped") {
+            const p = payload as { reason: string };
+            setCredit({ status: "skipped", reason: p.reason });
+          } else if (evType === "done") {
             const d = payload as DoneEvent;
             setDone(d);
             if (d.result) {
@@ -120,6 +139,9 @@ export function SweepPanel({ accrued }: { accrued: number }) {
                     },
               );
             }
+            // Re-fetch the dashboard server component so the on-chain accrued
+            // balance + Claim button pick up the new credit.
+            if (d.creditTxHash) router.refresh();
           } else if (evType === "error") {
             const msg = (payload as { error: string }).error;
             setError(msg);
@@ -229,7 +251,45 @@ export function SweepPanel({ accrued }: { accrued: number }) {
               </span>
             </li>
           ))}
+          {credit && credit.status !== "skipped" && (
+            <li className="sweep-event">
+              <span className="n">0{events.length + 1}</span>
+              <span className="lbl">
+                <b>Credited to your balance</b>
+                <span>creditFees on AttributionEscrow (80% creator, 20% platform)</span>
+              </span>
+              <span>
+                {credit.status === "pending" && (
+                  <span className="brand-chip dark">pending</span>
+                )}
+                {credit.status === "confirmed" && credit.txHash && (
+                  <a
+                    className="lnk"
+                    href={arcscan(credit.txHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {credit.txHash.slice(0, 10)}...
+                  </a>
+                )}
+              </span>
+            </li>
+          )}
         </ol>
+      )}
+      {credit?.status === "skipped" && credit.reason && (
+        <p
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            opacity: 0.55,
+            marginTop: 10,
+          }}
+        >
+          Credit skipped: {credit.reason}
+        </p>
       )}
       {done?.result && (
         <p
