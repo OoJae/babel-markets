@@ -79,6 +79,15 @@ npm run dev
 
 Open `localhost:3000`, paste a non-English article, and watch the 7 agent steps stream live with per-step USDC cost. Run `npm run eval` to score 12 multilingual fixtures and write Langfuse traces.
 
+## Reusable primitives
+
+The operator-attributed builder-fee escrow that powers Babel's `/dashboard` is published as a standalone Arc OSS starter:
+
+- Repo: [github.com/OoJae/arc-attribution-kit](https://github.com/OoJae/arc-attribution-kit)
+- Demo: [arc-attribution-kit.vercel.app](https://arc-attribution-kit.vercel.app)
+
+Other Arc builders can fork it for referral splits, content royalties, marketplace revenue shares, or any "operator credits many creators, creators claim with zero gas" flow. Submitted to the [Arc Open Source Showcase](https://arc-oss.thecanteenapp.com/).
+
 ## Compliance
 
 Babel is testnet-only for the hackathon period. Polymarket prohibits trading by US persons; we geo-gate at the edge and require self-attestation at sign-up. USYC is non-US-only and KYC-allow-listed; Babel demonstrates the integration on testnet as a structural design and does not park real user funds.
