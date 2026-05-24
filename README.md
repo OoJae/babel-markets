@@ -6,6 +6,12 @@ A trader in Lagos reads a Yoruba-language story about the petrol subsidy. They p
 
 Babel takes the prediction-market stack that Canteen has been unbundling, layers a translation primitive on top, and turns multilingual news distribution into a structural moat for builders who serve non-English markets.
 
+## Live demo
+
+[https://babel-markets.vercel.app](https://babel-markets.vercel.app)
+
+Paste a non-English news story into the landing page or `/app` and watch the 7-step agent pipeline stream live: detect, translate, assess, synthesize a binary YES / NO question, self-critique, dedup against prior markets, and decide whether to post. Each step is paid with a real Gateway Nanopayment on Arc testnet, and the reasoning trace is pinned to IPFS.
+
 ## How it works
 
 ```
@@ -25,21 +31,6 @@ Babel takes the prediction-market stack that Canteen has been unbundling, layers
 ```
 
 This mirrors the layered prediction-market stack the Canteen essay describes: ingestion as the cold input, an agent as the operator-mediated synthesis venue, and a market layer with builder codes as the identity primitive that ties creators to revenue. Babel is one solo-developer reading of how a non-English-first operator gets built on top of that stack.
-
-## Status
-
-Phases 1 through 9 have shipped:
-
-- **Phase 1**: Repo scaffold, Supabase schema with `pgvector`, Modular Wallets passkey enrollment lifted from `arc-p2p-payments`, geo-gate middleware, Irys IPFS pinning.
-- **Phase 2**: Real multi-step agent loop on mimo-v2.5-pro through an Anthropic-compatible gateway, Voyage AI embeddings, 5-axis self-critique rubric, eval harness against multilingual fixtures.
-- **Phase 3**: Polymarket V2 CLOB v2 client with builder code attached to signed EIP-712 orders, Gamma metadata matcher, IPFS provenance per question.
-- **Phase 4**: Gateway Nanopayments wired through the seller relay at `/api/babel-nanopay`. Each agent step settles a real testnet Nanopayment on Arc.
-- **Phase 5**: Live CCTP v2 sweep Polygon Amoy to Arc testnet, AttributionEscrow contract deployable to Arc, USYC float as a documented testnet stub, EURC routing wired through the question schema, market view, and post-market preview.
-- **Phase 6**: Claim flow wired to AttributionEscrow via passkey-signed paymaster-sponsored userOps, dashboard payout history + recent questions, market view status timeline + live numbers + per-axis quality bars, landing page trust signals.
-- **Phase 7**: Brand landing at `/` ported from a designed source into the Next.js App Router. Anton + Cormorant + JetBrains Mono via `next/font`, parchment / ink / Pompeii palette tokens, Tower of Babel + hero bust as Three.js scenes, multi-timezone nav clock, light/dark section flow, drift parallax, language ticker, scroll reveals, AgentDemo wired to the live `/api/agent/stream` with a canned simulation fallback.
-- **Phase 8**: Brand-styled `/app` paste flow. Both "Open Babel" CTAs on the landing deep-link to `/app`, where users type any non-English article and watch the real pipeline stream all seven steps with live SSE.
-- **Phase 9**: Full brand reskin across every route. The `(marketing)` route group is dissolved; `.brand-shell` and brand.css apply globally from the root layout. Dashboard, market view, sign-in, sign-up, geo-gate, and setup-wallet all rewrite their markup in brand selectors (parchment palette, Anton + Cormorant + JetBrains type). No shadcn primitives on user-facing pages. The agent pipeline, Nanopayments, escrow, sweep, claim flow, Supabase queries, and every API route are byte-for-byte unchanged from Phase 6/7/8.
-- **Phase 12**: Real-USYC integration scaffolded. `lib/circle/usyc-client.ts` calls Circle's USYC sandbox REST API when `USYC_API_KEY` is set; otherwise the existing deterministic stub runs. Dashboard badge flips from "sandbox pending" to "sandbox live" based on `NEXT_PUBLIC_USYC_LIVE=1`. Wiring is ready the day Circle delivers the hackathon sandbox key.
 
 ## Route map
 
